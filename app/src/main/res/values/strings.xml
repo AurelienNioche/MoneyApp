@@ -1,0 +1,23 @@
+<resources>
+
+    <string name="app_name">L. A. M.</string>
+    <string name="first_line_launch">Finding an idx and role…</string>
+    <string name="server_url">http://192.168.1.2:8081</string>
+    <string name="connection_error">No network connection available.</string>
+    <string name="start_button">Start</string>
+
+    <string name="title_activity_fullscreen">Economic Game</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+
+    <string name="choiceA">Choice A</string>
+    <string name="choiceB">Choice B</string>
+    <string name="submitting_choice">Submitting choice…</string>
+    <string name="waiting_msg">Waiting for other players to make their choices…</string>
+    <string name="button_next_round">Next round</string>
+    <string name="button_quit">Quit</string>
+    <string name="waiting_final_result">Getting your final result…</string>
+    <string name="problem_with_server">Some problem occurs trying to connect to the server. Trying again…</string>
+    <string name="next_round">Next round</string>
+
+</resources>

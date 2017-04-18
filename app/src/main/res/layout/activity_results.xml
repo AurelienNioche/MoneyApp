@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="humanoid.vs.android.com.moneyapp.ResultsActivity"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:id="@+id/activity_results"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:id="@+id/loadingPanel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center" >
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminate="true" />
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/counter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:visibility="visible"
+        >
+
+        <ImageView
+            android:id="@+id/small_reward"
+            android:layout_height="50dp"
+            android:layout_width="wrap_content"
+            android:src="@drawable/small_chocolate"
+            android:paddingEnd="0dp"
+            android:paddingStart="0dp" />
+
+        <TextView
+            android:id="@+id/reward_amount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:textSize="32sp"
+            android:paddingStart="0dp"
+            android:paddingEnd="10dp"
+            android:textColor="@color/black"
+            />
+
+    </LinearLayout>
+    <RelativeLayout
+        android:id="@+id/smiley_and_object"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/counter"
+        android:background="@color/white"
+        android:visibility="invisible" >
+
+        <ImageView
+            android:id="@+id/smiley"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:src="@drawable/smiley_happy"
+            android:layout_centerHorizontal="true" />
+
+        <ImageView
+            android:id="@+id/result_object_in_hand"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:src="@drawable/chocolate"
+            android:layout_below="@id/smiley"
+            android:layout_alignParentStart="true"
+            android:layout_marginBottom="50dp"/>
+
+    </RelativeLayout>
+
+    <ImageButton
+        android:id="@+id/button_next_round"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background="@drawable/next_arrow"
+        android:layout_alignParentBottom="true"
+        android:layout_centerInParent="true"
+        android:visibility="invisible"
+        android:scaleType="fitCenter"/>
+
+</RelativeLayout>
