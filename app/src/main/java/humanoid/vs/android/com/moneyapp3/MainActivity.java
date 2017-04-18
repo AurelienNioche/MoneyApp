@@ -4,7 +4,6 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
-import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -13,7 +12,6 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import java.util.HashMap;
 import java.util.Objects;
 import java.util.Random;
 
@@ -42,7 +40,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
     TextView wheat_amount;
     TextView plus_one;
 
-    Client client;
+    humanoid.vs.android.com.moneyapp3.Client client;
 
 //    HashMap <String, String> red_click = new HashMap<>();
 //    HashMap <String, String> green_click = new HashMap<>();

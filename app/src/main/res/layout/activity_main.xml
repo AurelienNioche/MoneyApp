@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="humanoid.vs.android.com.moneyapp2.MainActivity">
+    tools:context="humanoid.vs.android.com.moneyapp3.MainActivity">
 
     <ImageView
         android:id="@+id/clickable_areas"
@@ -180,11 +180,13 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         />
+
     <TableLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        android:background="@color/transparent"
         android:paddingTop="40dp"
         android:paddingEnd="40dp">
 
@@ -198,6 +200,7 @@
             android:fontFamily="serif"
             android:visibility="invisible"
             android:gravity="end"
+            android:background="@color/transparent"
         />
 
         <TextView
@@ -209,6 +212,7 @@
             android:fontFamily="serif"
             android:visibility="invisible"
             android:text="@string/plus_one"
+            android:background="@color/transparent"
             />
 
     </TableLayout>
