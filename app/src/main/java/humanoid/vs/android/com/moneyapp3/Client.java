@@ -1,4 +1,4 @@
-package humanoid.vs.android.com.moneyapp2;
+package humanoid.vs.android.com.moneyapp3;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
