@@ -5,11 +5,10 @@
         <item name="android:keepScreenOn">true</item>
         <item name="android:background">@color/white</item>
         <item name="android:windowBackground">@color/white</item>
-        <item name="metaButtonBarStyle">@null</item>
-        <item name="metaButtonBarButtonStyle">?android:attr/buttonBarButtonStyle</item>
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowActionBarOverlay">true</item>
         <item name="android:colorForeground">@color/white</item>
+        <item name="android:colorAccent">@color/black</item>
 
     </style>
 
