@@ -270,12 +270,15 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         show_result = 0;
         decision_taken = 0;
 
-        if (success == 1 && Objects.equals(demand, "wheat")) {
-            in_hand = "wood";
-            ++ wheat_amount_number;
-        } else {
-            in_hand = demand;
+        if (success == 1) {
+            if (Objects.equals(demand, "wheat")) {
+                in_hand = "wood";
+                ++ wheat_amount_number;
+            } else {
+                in_hand = demand;
+            }
         }
+
         if (continue_game == 1) {
             showChoice(view);
         } else {
