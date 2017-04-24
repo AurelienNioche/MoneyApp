@@ -435,7 +435,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         Log.e("MainActivity", String.format("Ask the server: '%s'.", demand));
         server_demand = demand;
         Communicate com = new Communicate();
-        com.execute(demand);
+        com.execute(demand + '\n');
     }
 
     void handleServerResponse(String response) {
