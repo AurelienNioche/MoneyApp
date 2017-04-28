@@ -63,8 +63,8 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
 
     int success = 0;
     int consumption = 0;
-
     int wheat_amount_number = 0;
+    int t = 0;
 
     int decision_taken = 0;
     int show_result = 0;
@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
 
     int time_logo_presentation = 1000;
     int time_retry_after_failure = 200;
-    int socket_time_out = 500;
+    int socket_time_out = 200;
 
     // ------------------------------------------------------------------------------ //
     // ------------------ OVERRIDED METHODS ----------------------------------------- //
@@ -259,7 +259,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         } else {
             showMadeChoice(welcome);
             // DEMAND TO SERVER
-            askServer(String.format("set_choice/%s/%s", idx, demand));
+            askServer(String.format("set_choice/%s/%s/%s", idx, demand, t));
         }
     }
 
@@ -363,10 +363,12 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         showMadeChoice(view);
 
         // DEMAND TO SERVER
-        askServer(String.format("set_choice/%s/%s", idx, demand));
+        askServer(String.format("set_choice/%s/%s/%s", idx, demand, t));
     }
 
     public void handleResults() {
+
+        t++;
 
         consumption = 0;
 
@@ -415,6 +417,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
             demand = parts[4];
             wheat_amount_number = Integer.parseInt(parts[5]);
             initial_state = parts[6];
+            t = Integer.parseInt(parts[7]);
             got_init_information = 1;
             handleInit();
         } else if (Objects.equals(parts[1], "result")) {
@@ -482,6 +485,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
 
             Socket s = new Socket();
             s.connect(new InetSocketAddress(server_ip, server_port), socket_time_out);
+            s.setSoTimeout(socket_time_out);
 
             DataOutputStream out = new DataOutputStream(s.getOutputStream());
             BufferedReader input = new BufferedReader(new InputStreamReader(s.getInputStream()));
