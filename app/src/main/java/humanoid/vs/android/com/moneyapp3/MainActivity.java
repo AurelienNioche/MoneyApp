@@ -61,6 +61,9 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
     String demand = "";
     String server_demand = "";
 
+    int socket_timeout;
+    int socket_retry;
+
     int success = 0;
     int consumption = 0;
     int wheat_amount_number = 0;
@@ -74,8 +77,6 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
     int logo_presentation = 1;
 
     int time_logo_presentation = 1000;
-    int time_retry_after_failure = 200;
-    int socket_time_out = 200;
 
     // ------------------------------------------------------------------------------ //
     // ------------------ OVERRIDED METHODS ----------------------------------------- //
@@ -91,7 +92,9 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         hideSystemUI();
 
         server_ip = getResources().getString(R.string.server_ip);
-        server_port = Integer.parseInt(getResources().getString(R.string.server_port));
+        server_port = getResources().getInteger(R.integer.server_port);
+        socket_timeout = getResources().getInteger(R.integer.socket_timeout);
+        socket_retry = getResources().getInteger(R.integer.socket_retry);
 
         logo = (ImageView) findViewById(R.id.logo);
         welcome = (ImageView) findViewById(R.id.welcome);
@@ -467,7 +470,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
                 // Actions to do after x ms
                 askServer(server_demand);
             }
-        }, time_retry_after_failure);
+        }, socket_retry);
     }
 
     private class Communicate extends AsyncTask<String, Integer, String> {
@@ -484,8 +487,8 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         try {
 
             Socket s = new Socket();
-            s.connect(new InetSocketAddress(server_ip, server_port), socket_time_out);
-            s.setSoTimeout(socket_time_out);
+            s.connect(new InetSocketAddress(server_ip, server_port), socket_timeout);
+            s.setSoTimeout(socket_timeout);
 
             DataOutputStream out = new DataOutputStream(s.getOutputStream());
             BufferedReader input = new BufferedReader(new InputStreamReader(s.getInputStream()));
