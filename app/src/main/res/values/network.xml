@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="server_ip">10.24.12.12</string>
+    <string name="server_ip">192.168.1.201</string>
     <integer name="server_port">8081</integer>
     <integer name="socket_timeout">500</integer>
     <integer name="socket_retry">500</integer>
