@@ -23,6 +23,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Objects;
 
+
 public class MainActivity extends AppCompatActivity implements View.OnTouchListener {
 
     ImageView logo;
@@ -68,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
     int consumption = 0;
     int wheat_amount_number = 0;
     int t = 0;
+    int t_last_choice = -1;
 
     int decision_taken = 0;
     int show_result = 0;
@@ -298,6 +300,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         if (logo_presentation == 0 && got_init_information == 1) {
 
             if (Objects.equals(initial_state, "ask_result")) {
+                t_last_choice = t;
                 handleAskResult();
             }
 
@@ -334,6 +337,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
     public void handleChoice(View view, String position) {
 
         decision_taken = 1;
+        t_last_choice = t;
 
         if (Objects.equals(position, "top")) {
 
@@ -371,7 +375,11 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
 
     public void handleResults() {
 
-        t++;
+        if (t_last_choice == t){
+            t++;
+            // In case of troubles with network and/or reset program,
+            // could happen that this method is called multiple times
+        }
 
         consumption = 0;
 
