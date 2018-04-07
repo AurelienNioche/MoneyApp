@@ -20,8 +20,6 @@ public class GameController : MonoBehaviour {
 	UIController uiController;
 	TL state;
 
-	bool occupied = false;
-
 	Client client;
 
 	// -------------- Inherited from MonoBehavior ---------------------------- //
@@ -30,64 +28,17 @@ public class GameController : MonoBehaviour {
 
 		uiController = GetComponent<UIController> ();
 		client = GetComponent<Client> ();
+
+		Screen.sleepTimeout = SleepTimeout.NeverSleep;
+		state = TL.HomeWU;
 	}
 
 	void Start () {
 
-		Screen.sleepTimeout = SleepTimeout.NeverSleep;
-
-		state = TL.HomeWaitingUser;
-
-		uiController.ShowNextButton ();
+		uiController.HomeWU ();
 	}
 
-	void Update () {
-
-		if (!occupied) {
-
-			occupied = true;
-			ManageState ();
-			occupied = false;
-		}
-	}
-
-	// ------------------- Between user and player --------------------------- //
-
-	void ManageState () {
-
-		switch (state) {
-
-		case TL.HomeWaitingUser:
-			break;
-
-		case TL.HomeUserNext:
-			client.Init ();
-			state = TL.InitWaitReply;
-			break;
-
-		case TL.InitWaitReply:
-			if (client.IsState (TLClient.GotReply)) {
-				Debug.Log ("Got response");
-				state = TL.Dead;
-			}
-			break;
-		case TL.Dead:
-
-			break;
-		
-		default:
-			throw new System.Exception ("GameController: Bad state.");
-		}
-	}
-
-	// ----------- From UIManager ---------------- //
-
-	public void UserNext () {
-		Debug.Log ("GameController: User clicked on Next");
-		if (state == TL.HomeWaitingUser) {
-			state = TL.HomeUserNext;
-		}
-	}
+	void Update () {}
 
 	// ------------------------------ //
 
@@ -100,4 +51,93 @@ public class GameController : MonoBehaviour {
 		yield return new WaitForSeconds(seconds);
 		methodName ();
 	}
+
+	// ----------- From UIManager ---------------- //
+
+	public void UserNext () {
+
+		Debug.Log ("GameController: User clicked on Next");
+
+		switch (state) {
+
+		case TL.HomeWU:
+			uiController.HomeWS ();
+			client.Init ();
+			state = TL.InitWS;
+			break;
+
+		case TL.SurveyWU:
+
+			if (uiController.EvaluateUserData ()) {
+				uiController.SurveyWS ();
+				client.Survey (age: uiController.GetAge(), sex:uiController.GetSex());
+				state = TL.SurveyWS;
+			} else {
+				uiController.ShowNextButton ();
+			}
+
+			break;
+			
+
+		case TL.TutoThreeGoodsWU:
+			uiController.TutoSpec ();
+			state = TL.TutoSpecWU;
+			break;
+
+		case TL.GameChoiceWU:
+			client.Choice (uiController.GetGoodDesired ());
+			state = TL.GameChoiceWS;
+			break;
+		}
+	}
+
+	// ----------- From Client ----------- //
+
+	public void ServerReplied () {
+
+		Debug.Log ("GameController: Received response from server.");
+
+		if (client.GetWait ()) {
+
+			uiController.StatusProgressBar (progress: client.GetProgress (), 
+				msg: "En attente des autres joueurs");
+			client.RetryDemand ();
+
+		} else {
+
+			switch (state) {
+
+			case TL.InitWS:
+					
+				if (client.GetCurrentStep () == GameStep.tutorial) {
+					uiController.TutoThreeGoods ();
+					state = TL.TutoThreeGoodsWU;
+					
+				} else if (client.GetCurrentStep () == GameStep.survey) {
+					uiController.SurveyWU ();
+					state = TL.SurveyWU;
+					
+				} else if (client.GetCurrentStep () == GameStep.game) {
+					state = TL.GameChoiceWU;
+				} else {
+					throw new Exception ();
+				}
+
+				break;
+
+			case TL.SurveyWS:
+				if (client.GetSkipTutorial ()) {
+					state = TL.GameChoiceWU;
+				} else {
+					uiController.TutoThreeGoods ();
+					state = TL.TutoThreeGoodsWU;
+				}
+				break;
+			
+			}
+
+		}
+			
+	}
+
 }

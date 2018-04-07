@@ -60,11 +60,11 @@ MonoBehaviour:
   buttonStoneWood: {fileID: 0}
   buttonStoneWheat: {fileID: 0}
   statusProgressBar: {fileID: 0}
+  statusText: {fileID: 0}
   radialProgressBar: {fileID: 0}
+  pseudo: {fileID: 0}
   score: {fileID: 0}
   scoreToAdd: {fileID: 0}
-  statusText: {fileID: 0}
-  pseudo: {fileID: 0}
   title: {fileID: 0}
   logo: {fileID: 0}
   ScoreLogo: {fileID: 0}
@@ -92,6 +92,11 @@ MonoBehaviour:
   textStrategyIndirect: {fileID: 0}
   textTraining: {fileID: 0}
   textReady: {fileID: 0}
+  survey: {fileID: 0}
+  age: {fileID: 0}
+  male: {fileID: 0}
+  female: {fileID: 0}
+  consent: {fileID: 0}
 --- !u!114 &114452315554507466
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -104,7 +109,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   url: http://127.0.0.1:8000/client_request/
-  timeBeforeRetryingDemand: 0
+  timeBeforeRetryingDemand: 1
 --- !u!114 &114996538299584542
 MonoBehaviour:
   m_ObjectHideFlags: 1

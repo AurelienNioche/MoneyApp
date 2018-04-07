@@ -48,6 +48,7 @@ public class Client : MonoBehaviour {
 	bool serverError;
 	bool serverResponse;
 
+	GameController gameController;
 	JSONObject response;
 
 	WWWForm form;
@@ -78,18 +79,19 @@ public class Client : MonoBehaviour {
 
 	// --------------- Overloaded Unity's functions -------------------------- //
 
-	void Awake () {}
-
-	// Use this for initialization
-	void Start () {
-
+	void Awake () {
 		deviceId = UnityEngine.SystemInfo.deviceUniqueIdentifier;
 
 		state = TLClient.WaitingRequest;
 		occupied = false;
 
 		currentStep = GameStep.tutorial;
+
+		gameController = GetComponent<GameController> ();
 	}
+
+	// Use this for initialization
+	void Start () {}
 
 	// Update is called once per frame
 	void Update () {
@@ -117,7 +119,7 @@ public class Client : MonoBehaviour {
 			break;
 
 		default:
-			throw new Exception ("Bad state '" + state + "'");
+			throw new Exception ("Client: Bad state '" + state + "'");
 		}
 	}
 
@@ -217,12 +219,12 @@ public class Client : MonoBehaviour {
 		} else if (what == Demand.choice) {
 			ReplyChoice();
 		}
-		Debug.Log ("Get here");
 		state = TLClient.GotReply;
+		gameController.ServerReplied ();
 	}
 
 	void LogState () {
-		Debug.Log ("ClientLfp: My state is '" + state + "'.");
+		Debug.Log ("Client: My state is '" + state + "'.");
 	}
 
 	// ------- State ------------- // 
@@ -340,7 +342,7 @@ public class Client : MonoBehaviour {
 		}	
 	}
 
-	public void RetryDemand() {
+	public void RetryDemand () {
 		StartCoroutine (CoroutineRetryDemand ());
 	}
 

@@ -14,6 +14,7 @@ class Bool {
 
 public class UIController : MonoBehaviour {
 
+	// Buttons
 	public Button buttonNext;
 	public Button buttonPrevious;
 
@@ -22,13 +23,18 @@ public class UIController : MonoBehaviour {
 	public Button buttonStoneWood;
 	public Button buttonStoneWheat;
 
+	// Bottom: status bar
 	public Slider statusProgressBar;
-	public Image radialProgressBar;
+	public Text statusText;
 
+	// Top left: radial progress bar
+	public Image radialProgressBar;
+	public Text pseudo;
+
+	// Top right: Score
 	public Text score;
 	public Text scoreToAdd;
-	public Text statusText;
-	public Text pseudo;
+
 	public Text title;
 
 	public Image logo;
@@ -62,18 +68,30 @@ public class UIController : MonoBehaviour {
 	public Text textTraining;
 	public Text textReady;
 
+	// -------- Survey --------- //
+
+	public GameObject survey;
+	public InputField age;
+	public Toggle male;
+	public Toggle female;
+	public Toggle consent;
+
+	// -------------------- //
+
 	GameController gameController;
+
+	int goodDesired;
+	int goodInHand;
 
 	// -------------- Inherited from MonoBehavior ---------------------------- //
 
 	void Awake () {
 		
 		gameController = GetComponent<GameController> ();
-	}
-
-	void Start () {
 		AssociatePushButtons ();
 	}
+
+	void Start () {}
 
 	void Update () {}
 
@@ -96,7 +114,7 @@ public class UIController : MonoBehaviour {
 
 	void ButtonNext () {
 
-		Debug.Log("UIController (Main): User clicked on button 'Next'.");
+		Debug.Log("UIController: User clicked on button 'Next'.");
 
 		gameController.UserNext ();
 		buttonNext.interactable = false;
@@ -105,7 +123,7 @@ public class UIController : MonoBehaviour {
 
 	void ButtonPrevious () {
 		
-		Debug.Log("UIController (Main): User clicked on button 'Previous'.");
+		Debug.Log("UIController: User clicked on button 'Previous'.");
 	
 	}
 
@@ -178,13 +196,111 @@ public class UIController : MonoBehaviour {
 	}
 
 	void UpdateRadialProgressBar (int progress) {
-		radialProgressBar.fillAmount = progress / 100;
+		radialProgressBar.fillAmount = progress / 100f;
 	}
 
 	void UpdateStatusProgressBar (int progress) {
-		statusProgressBar.value = progress / 100;
+		statusProgressBar.value = progress / 100f;
 	}
 
+	void ShowStatusBar(bool visible=true) {
+		Anim (statusProgressBar.gameObject, visible: visible);
+		Anim (statusText.gameObject, visible: visible);
+	}
+
+	void StatusMessage (string msg, Color color=default(Color)) {
+
+		statusText.text = msg;
+		if (color == default(Color)) {
+			statusText.color = Color.black;
+		} else {
+			statusText.color = color;
+		}
+	}
+
+	// -------------------- //
+
+	public bool EvaluateUserData () {
+
+		if (age.text.Length == 0) {
+
+			StatusMessage ("Vous devez indiquer votre age!", color:Color.red);
+			return false;
+		}	
+
+		if (!male.isOn && !female.isOn) {
+			
+			StatusMessage ("Vous devez indiquer votre sexe!", color: Color.red);
+			return false;
+		}
+
+		if (!consent.isOn) {
+			
+			StatusMessage ("Vous devez donner votre consentement!", color: Color.red);
+			return false;
+		}
+			
+		return true;
+	}
+
+	// ------------------- // 
+
+	public int GetGoodDesired () {
+		return goodDesired;
+	}
+
+	public int GetAge () {
+		return int.Parse (age.text);
+	}
+
+	public string GetSex () {
+		if (male.isOn) {
+			return "male";
+		} else {
+			return "female";
+		}
+	}
+
+
+	// -------------------- //
+
+	public void HomeWU () {
+		Anim (logo.gameObject, visible: true);
+		Anim (title.gameObject, visible: true);
+		Anim (buttonNext.gameObject, visible: true, glow: true);
+	}
+
+	public void HomeWS () {
+		Anim (logo.gameObject, glow: true);
+	}
+
+	public void SurveyWU () {
+		ShowStatusBar (false);
+		ShowNextButton ();
+		Anim (survey, visible: true);
+	}
+
+	public void SurveyWS () {
+		Anim (survey, visible: false);
+		Anim (logo.gameObject, visible: true, glow: true);
+	}
+
+	public void TutoThreeGoods () {
+		ShowStatusBar (false);
+		Anim (logo.gameObject, visible: false);
+		Anim (illustrationThreeGoods.gameObject, visible: true);
+	}
+
+	public void TutoSpec() {
+		Anim (illustrationThreeGoods.gameObject, visible: false);
+		Anim (illustrationSpecialization.gameObject, visible: true);
+	}
+		
+	public void StatusProgressBar (int progress, string msg) {
+		ShowStatusBar (true);
+		UpdateStatusProgressBar (progress);
+		StatusMessage (msg);
+	}
 
 }
 
