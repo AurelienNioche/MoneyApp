@@ -20,9 +20,15 @@ namespace AssemblyCSharp
 		TutoDirStrWU,
 		TutoIndStrWU,
 		TutoTrainingWU,
+		TutoChoiceWU,
+		TutoChoiceWS,
+		TutoResultWU,
+		TutoEndWU,
+		TutoReadyWU,
 		TutoDoneWS,
 		GameChoiceWU,
 		GameChoiceWS,
+		GameResultWU,
 		End
 	}
 }
