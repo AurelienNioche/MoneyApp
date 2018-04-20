@@ -6,13 +6,13 @@ using AssemblyCSharp;
 using UnityEngine.Networking;
 
 
-public class Demand {
+class Demand {
 
 	public static string init = "init";
 	public static string survey = "survey";
 	public static string choice = "choice";
-	public static string tutorialDone = "tutorial_done";
-	public static string tutorialChoice = "tutorial_choice";
+	public static string trainingDone = "tutorial_done";
+	public static string trainingChoice = "tutorial_choice";
 }
 
 class Key {
@@ -20,27 +20,98 @@ class Key {
 	public static string demand = "demand";
 	public static string deviceId = "device_id";
 	public static string userId = "user_id";
-	public static string wait = "wait";
-	public static string state = "state";
 	public static string age = "age";
 	public static string sex = "sex";
-	public static string score = "score";
-	public static string choiceMade = "choice_made";
-	public static string goodInHand = "good";
-	public static string goodDesired = "desired_good";
+	public static string good = "good";
 	public static string t = "t";
-	public static string tMax = "t_max";
-	public static string tutoT = "tuto_t";
-	public static string tutoTMax = "tuto_t_max";
-	public static string tutoGoodInHand = "tuto_good";
-	public static string tutoGoodDesired = "tuto_desired_good";
-	public static string tutoChoiceMade = "tuto_choice_made";
-	public static string progress = "progress";
-	public static string end = "end";
-	public static string pseudo = "pseudo";
-	public static string success = "success";
-	public static string skipTutorial = "skip_tutorial";
-	public static string skipSurvey = "skip_survey";
+}
+
+[System.Serializable]
+class ResponseInit {
+
+	public int userId = -1;
+	public string pseudo = "";
+
+	public bool wait = false;
+	public int progress =  -1;
+
+	public string step = null;
+
+	public int tutoT = -1;
+	public int tutoTMax = -1;
+	public int tutoGoodInHand = -1;
+	public int tutoGoodDesired = -1;
+	public bool tutoChoiceMade = false;
+	public int tutoScore = -1;
+	 
+	public int t = -1;
+	public int tMax = -1;
+	public int goodInHand = -1;
+	public int goodDesired = -1;
+	public bool choiceMade = false;
+	public int score = -1;
+
+	public int nGood = -1;
+
+	public static ResponseInit CreateFromJson(string jsonString) {
+		return JsonUtility.FromJson<ResponseInit> (jsonString);
+	}
+}
+
+[System.Serializable]
+class ResponseSurvey {
+
+	public bool wait = false;
+	public int progress =  -1;
+
+	public static ResponseSurvey CreateFromJson(string jsonString) {
+		return JsonUtility.FromJson<ResponseSurvey> (jsonString);
+	}
+}
+
+
+[System.Serializable]
+class ResponseTutorialDone {
+
+	public bool wait = false;
+	public int progress =  -1;
+
+	public static ResponseTutorialDone CreateFromJson(string jsonString) {
+		return JsonUtility.FromJson<ResponseTutorialDone> (jsonString);
+	}
+}
+
+[System.Serializable]
+class ResponseTutorialChoice {
+
+	public bool wait = false;
+	public int progress =  -1;
+
+	public bool tutoSuccess = false;
+	public int tutoT = -1;
+	public int tutoScore = -1;
+	public bool tutoEnd = false;
+
+	public static ResponseTutorialChoice CreateFromJson(string jsonString) {
+		return JsonUtility.FromJson<ResponseTutorialChoice> (jsonString);
+	}
+}
+
+
+[System.Serializable]
+class ResponseChoice {
+
+	public bool wait = false;
+	public int progress = -1;
+
+	public bool success = false;
+	public int t = -1;
+	public int score = -1;
+	public bool end = false;
+
+	public static ResponseChoice CreateFromJson(string jsonString) {
+		return JsonUtility.FromJson<ResponseChoice> (jsonString);
+	}
 }
 
 
@@ -51,61 +122,63 @@ public class Client : MonoBehaviour {
 	public string url = "http://127.0.0.1:8000/client_request/";
 	public float timeBeforeRetryingDemand = 1f; 
 
-	bool serverError;
-	bool serverResponse;
+	bool gotError;
+	bool gotResponse;
+
+	string deviceId;
+
+	bool occupied;
 
 	GameController gameController;
-	JSONObject response;
 
 	WWWForm form;
 	WWWForm formInMemory;
 
-	// -------------- For player ------------------------ //
-
 	TLClient state;
 
-	string deviceId;
-	int userId;
-	string pseudo;
+	string response;
+	string demand;
 
-	bool occupied;
+	// ------------------------------------------------------------ //
 
-	bool wait;
-	int progress;
+	int userId = -1;
+	string pseudo = "";
 
-	string currentStep;
+	bool wait = false;
+	int progress =  -1;
 
-	int tutoT;
-	int tutoTMax;
-	int tutoGoodInHand;
-	int tutoGoodDesired;
-	int tutoScore;
-	bool tutoChoiceMade;
-	bool tutoSuccess;
-	bool tutoEnd;
+	string step = null;
 
-	int t;
-	int tMax;
-	int score;
-	int goodInHand;
-	int goodDesired;
-	bool choiceMade;
-	bool success;
-	bool end;
+	int tutoT = -1;
+	int tutoTMax = -1;
+	int tutoGoodInHand = -1;
+	int tutoGoodDesired = -1;
+	int tutoScore = -1;
+	bool tutoChoiceMade = false;
+	bool tutoSuccess = false;
+	bool tutoEnd = false;
 
-	bool skipTutorial;
-	bool skipSurvey;
+	int t = -1;
+	int tMax = -1;
+	int score = -1;
+	int goodInHand = -1;
+	int goodDesired = -1;
+	bool choiceMade = false;
+	bool success = false;
+	bool end = false;
+
+	int nGood = -1;
 
 	// --------------- Overloaded Unity's functions -------------------------- //
 
 	void Awake () {
+
+		// response = new Dictionary<string, string> ();
 		
 		deviceId = UnityEngine.SystemInfo.deviceUniqueIdentifier;
 
 		state = TLClient.WaitingRequest;
 		occupied = false;
-
-		currentStep = GameStep.tutorial;
 
 		gameController = GetComponent<GameController> ();
 	}
@@ -147,6 +220,8 @@ public class Client : MonoBehaviour {
 
 	public void Init () {
 
+		demand = Demand.init;
+
 		form = new WWWForm();
 		form.AddField (Key.demand, Demand.init);
 		form.AddField (Key.deviceId, deviceId);
@@ -154,6 +229,8 @@ public class Client : MonoBehaviour {
 	}
 
 	public void Survey (int age, string sex) {
+
+		demand = Demand.survey;
 
 		form = new WWWForm();
 		form.AddField (Key.userId, userId);
@@ -163,123 +240,120 @@ public class Client : MonoBehaviour {
 		Request ();
 	}
 
-	public void TutorialDone () {
+	public void TrainingDone () {
+
+		demand = Demand.trainingDone;
 
 		form = new WWWForm();
 		form.AddField (Key.userId, userId);
-		form.AddField (Key.demand, Demand.tutorialDone);
+		form.AddField (Key.demand, Demand.trainingDone);
 		Request ();
 	} 
 
 	public void Choice (int value) {
 
+		demand = Demand.choice;
+
 		form = new WWWForm();
 		form.AddField (Key.userId, userId);
 		form.AddField (Key.demand, Demand.choice);
-		form.AddField (Key.goodDesired, value);
+		form.AddField (Key.t, t);
+		form.AddField (Key.good, value);
 		Request ();
 	}
 
-	public void TutorialChoice (int value) {
+	public void TrainingChoice (int value) {
+
+		demand = Demand.trainingChoice;
 
 		form = new WWWForm();
 		form.AddField (Key.userId, userId);
-		form.AddField (Key.demand, Demand.tutorialChoice);
-		form.AddField (Key.goodDesired, value);
+		form.AddField (Key.demand, Demand.trainingChoice);
+		form.AddField (Key.t, tutoT);
+		form.AddField (Key.good, value);
 		Request ();
-	}
-
-	// ------------------------------------------------------------------------------------ //
-
-	void ReplyInit () {
-		wait = response.GetField (Key.wait).b;
-		if (wait) {
-			progress = (int) response.GetField (Key.progress).n;
-		} else {
-			currentStep = response.GetField (Key.state).str;
-			choiceMade = response.GetField (Key.choiceMade).b;
-			score = (int) response.GetField (Key.score).n;
-			goodInHand = (int) response.GetField (Key.goodInHand).n;
-			goodDesired = (int) response.GetField (Key.goodDesired).n;
-			t = (int) response.GetField (Key.t).n;
-			tMax = (int) response.GetField (Key.tMax).n;
-			skipSurvey = response.GetField (Key.skipSurvey).b;
-			skipTutorial = response.GetField (Key.skipTutorial).b;
-			pseudo = response.GetField (Key.pseudo).str;
-			userId = (int) response.GetField (Key.userId).n;
-			tutoGoodInHand = (int) response.GetField (Key.tutoGoodInHand).n;
-			tutoGoodDesired = (int) response.GetField (Key.tutoGoodDesired).n;
-			tutoT = (int) response.GetField (Key.tutoT).n;
-			tutoTMax = (int) response.GetField (Key.tutoTMax).n;
-			tutoChoiceMade = response.GetField (Key.tutoChoiceMade).b;
-
-			Debug.Log ("Pseudo:" + pseudo);
-		}
-	}
-
-	void ReplySurvey () {
-
-		wait = response.GetField (Key.wait).b;
-		if (wait) {
-			progress = (int) response.GetField (Key.progress).n;
-		}
-	}
-
-	void ReplyTutorialChoice () {
-
-		wait = response.GetField (Key.wait).b;
-		if (wait) {
-			progress = (int) response.GetField (Key.progress).n;
-		} else {
-			tutoSuccess = response.GetField (Key.success).b;
-			tutoEnd = response.GetField (Key.end).b;
-			tutoT = (int) response.GetField (Key.t).n;
-			tutoScore = (int) response.GetField (Key.score).n;
-			Debug.Log (tutoEnd);
-		}
-	}
-
-	void ReplyTutorialDone () {
-
-		wait = response.GetField (Key.wait).b;
-		if (wait) {
-			progress = (int) response.GetField (Key.progress).n;
-		}
-	}
-
-	void ReplyChoice () {
-
-		wait = response.GetField (Key.wait).b;
-		if (wait) {
-			progress = (int) response.GetField (Key.progress).n;
-		} else {
-			success = response.GetField (Key.success).b;
-			end = response.GetField (Key.end).b;
-			t = (int) response.GetField (Key.t).n;
-			score = (int) response.GetField (Key.score).n;
-		}
 	}
 
 	// ------------------ General methods for communicating with the server --------- //
 
 	void HandleServerResponse () {
 
-		serverResponse = false;
+		gotResponse = false;
 
-		string what = response.GetField (Key.demand).str;
-		if (what == Demand.init) {
-			ReplyInit ();
-		} else if (what == Demand.survey) {
-			ReplySurvey ();
-		} else if (what == Demand.tutorialDone) {
-			ReplyTutorialDone ();
-		} else if (what == Demand.choice) {
-			ReplyChoice ();
-		} else if (what == Demand.tutorialChoice) {
-			ReplyTutorialChoice ();
+		if (demand == Demand.init) {
+
+			ResponseInit ri = ResponseInit.CreateFromJson (response);
+			userId = ri.userId;
+			pseudo = ri.pseudo;
+
+			wait = ri.wait;
+			progress = ri.progress;
+
+			step = ri.step;
+
+			tutoT = ri.tutoT;
+			tutoTMax = ri.tutoTMax;
+			tutoGoodInHand = ri.tutoGoodInHand;
+			tutoGoodDesired = ri.tutoGoodDesired;
+			tutoChoiceMade = ri.tutoChoiceMade;
+			tutoScore = ri.tutoScore;
+
+			t = ri.t;
+			tMax = ri.tMax;
+			goodInHand = ri.goodInHand;
+			goodDesired = ri.goodDesired;
+			choiceMade = ri.choiceMade;
+			score = ri.score;
+
+			nGood = ri.nGood;
+
+			if (!wait) {
+				Debug.Log (
+					String.Format("userId: {0}, pseudo: {1}, step: {2}, \n" +
+						"tutoT: {3}, tutoTMax: {4}, tutoGoodInHand: {5}, tutoGoodDesired: {6}, tutoChoiceMade: {7}, tutoScore: {8}, \n" +
+						"t: {9}, tMax: {10}, goodInHand: {11}, goodDesired: {12}, choiceMade: {13}, score: {14}, nGood: {15}", 
+						new object [] {userId, pseudo, step, tutoT, tutoTMax, tutoGoodInHand, tutoGoodDesired, tutoChoiceMade, tutoScore,
+						t, tMax, goodInHand, goodDesired, choiceMade, score, nGood})
+					);
+			}
+		
+		} else if (demand == Demand.survey) {
+
+			ResponseSurvey rs = ResponseSurvey.CreateFromJson (response);
+			wait = rs.wait;
+			progress = rs.progress;
+		
+		} else if (demand == Demand.choice) { 
+
+			ResponseChoice rc = ResponseChoice.CreateFromJson (response);
+			wait = rc.wait;
+			progress = rc.progress;
+
+			success = rc.success;
+			t = rc.t;
+			end = rc.end;
+			score = rc.score;
+
+		} else if (demand == Demand.trainingChoice) { 
+			
+			ResponseTutorialChoice rtc = ResponseTutorialChoice.CreateFromJson (response);
+			wait = rtc.wait;
+			progress = rtc.progress;
+
+			tutoSuccess = rtc.tutoSuccess;
+			tutoT = rtc.tutoT;
+			tutoScore = rtc.tutoScore;
+			tutoEnd = rtc.tutoEnd;
+
+		} else if (demand == Demand.trainingDone) {
+			
+			ResponseTutorialDone rtd = ResponseTutorialDone.CreateFromJson (response);
+			wait = rtd.wait;
+			progress = rtd.progress;
 		} else {
-			throw new Exception ("Client: Not expected case");
+			throw new Exception ("Not expected demand: " + demand);
 		}
+
 		state = TLClient.GotReply;
 		gameController.ServerReplied ();
 	}
@@ -304,8 +378,8 @@ public class Client : MonoBehaviour {
 		return progress;
 	}
 
-	public string GetCurrentStep () {
-		return currentStep;
+	public string GetStep () {
+		return step;
 	}
 
 	public int GetScore () {
@@ -344,14 +418,6 @@ public class Client : MonoBehaviour {
 		return tMax;
 	}
 
-	public bool GetSkipTutorial () {
-		return skipTutorial;
-	}
-
-	public bool GetSkipSurvey () {
-		return skipSurvey;
-	}
-
 	public int GetTutoScore () {
 		return tutoScore;
 	}
@@ -383,6 +449,10 @@ public class Client : MonoBehaviour {
 	public int GetTutoTMax () {
 		return tutoTMax;
 	}
+
+	public int GetNGoods () {
+		return nGood;
+	}
 		
 	// ----------------------- Communication ----------------- //
 
@@ -397,40 +467,40 @@ public class Client : MonoBehaviour {
 		www.chunkedTransfer = false;
 		// www.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 
-		serverError = false;
+		gotError = false;
 
 		yield return www.SendWebRequest();
 
 		if (www.isNetworkError || www.isHttpError) {
 
-			serverError = true;
+			gotError = true;
 			Debug.Log ("Client: I got an error: '" + www.error + "'.");
 
 		} else {
 
 			try { 
-				response = new JSONObject(www.downloadHandler.text);
+				response = www.downloadHandler.text;
 				Debug.Log("Client: Create JSON");
 			} catch (Exception) {
-				serverError = true;
+				gotError = true;
 			}
 		}
 
-		serverResponse = true;
+		gotResponse = true;
 	}
 
 	bool HasResponse () {
 
 		// Return if client recieves a response.
-		if (serverResponse) {
+		if (gotResponse) {
 
 			Debug.Log ("Client: Got response from server.");
 
-			if (serverError == false) {
+			if (gotError == false) {
 				return true;
 
 			} else {
-				serverResponse = false;
+				gotResponse = false;
 				RetryDemand ();
 				return false;
 			}

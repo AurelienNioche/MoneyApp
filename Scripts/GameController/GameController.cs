@@ -7,6 +7,14 @@ using UnityEngine.SceneManagement;
 using AssemblyCSharp;
 
 
+public class Good {
+	public const int wood = 0;
+	public const int wheat = 1;
+	public const int stone = 2;
+	public const int clay = 3;
+}
+
+
 public class GameStep {
 	public static string tutorial = "tutorial";
 	public static string survey = "survey";
@@ -18,6 +26,12 @@ public class GameStep {
 public class GameController : MonoBehaviour {
 
 	UIController uiController;
+	UITutorial uiTutorial;
+	UIProgressBars uiProgressBars;
+	UIButtons uiButtons;
+	Survey survey;
+
+
 	TL state;
 
 	Client client;
@@ -25,6 +39,8 @@ public class GameController : MonoBehaviour {
 
 	bool choiceMade; 
 	bool success;
+	bool end;
+
 	int t; 
 	int tMax; 
 	int goodInHand; 
@@ -36,14 +52,17 @@ public class GameController : MonoBehaviour {
 	void Awake () {
 
 		uiController = GetComponent<UIController> ();
+		uiTutorial = GetComponent<UITutorial> ();
+		uiProgressBars = GetComponent<UIProgressBars> ();
+		uiButtons = GetComponent<UIButtons> ();
 		client = GetComponent<Client> ();
+		survey = GetComponent<Survey> ();
 
 		Screen.sleepTimeout = SleepTimeout.NeverSleep;
 		state = TL.HomeWU;
 	}
 
 	void Start () {
-
 		uiController.HomeWU ();
 	}
 
@@ -77,106 +96,59 @@ public class GameController : MonoBehaviour {
 
 		case TL.SurveyWU:
 
-			if (uiController.EvaluateUserData ()) {
-				uiController.SurveyWS ();
-				client.Survey (age: uiController.GetAge(), sex:uiController.GetSex());
+			if (survey.EvaluateUserData ()) {
+				survey.View (false);
+				client.Survey (age: survey.GetAge(), sex:survey.GetSex());
 				state = TL.SurveyWS;
 			} else {
-				uiController.ShowNextButton ();
+				uiButtons.ShowNext ();
 			}
-
 			break;
 
-		case TL.TutoThreeGoodsWU:
+		case TL.TutorialWU:
 
-			uiController.ShowNextButton (glow: true);
-			uiController.TutoThreeGoods (false);
-			uiController.TutoSpec ();
-			state = TL.TutoSpecWU;
-			break;
-
-		case TL.TutoSpecWU:
-
-			uiController.ShowNextButton (glow: true);
-			uiController.TutoSpec (false);
-			uiController.TutoMarkets ();
-			state = TL.TutoMarketsWU;
+			if (!uiTutorial.IsLastStep ()) {
+				uiTutorial.NextStep ();
+			} else {
+				uiTutorial.End ();
+				uiController.TrainingBegin ();
+				state = TL.TrainingStartWU;
+			}
 			break;
 		
-		case TL.TutoMarketsWU:
-			uiController.ShowNextButton (glow: true);
-			uiController.TutoMarkets (false);
-			uiController.TutoYou ();
-			state = TL.TutoYouWU;
-			break;
-		
-		case TL.TutoYouWU:
+		case TL.TrainingStartWU:
 
-			uiController.ShowNextButton (glow: true);
-			uiController.TutoYou (false);
-			uiController.TutoStrategyDirect ();
-			state = TL.TutoDirStrWU;
-			break;
-
-		case TL.TutoDirStrWU:
-
-			uiController.ShowNextButton (glow: true);
-			uiController.TutoStrategyDirect (false);
-			uiController.TutoStrategyIndirect ();
-			state = TL.TutoIndStrWU;
-			break;
-		
-		case TL.TutoIndStrWU:
-
-			uiController.ShowNextButton (glow: true);
-			uiController.TutoStrategyIndirect (false);
-			uiController.TutoTraining ();
-			state = TL.TutoTrainingWU;
-			break;
-		
-		case TL.TutoTrainingWU:
-
-			uiController.ShowNextButton (glow: true);
-			uiController.TutoTraining (false);
+			uiController.HideTrainingMsg ();
 			BeginGame (training: true);
 			break;
 
-		case TL.TutoChoiceWU:
+		case TL.TrainingChoiceWU:
 
 			goodDesired = uiController.GetGoodChosen ();
 
-			client.TutorialChoice (goodDesired);
-			state = TL.TutoChoiceWS;
+			client.TrainingChoice (goodDesired);
+			state = TL.TrainingChoiceWS;
 			break;
 
-		case TL.TutoResultWU:
+		case TL.TrainingResultWU:
 			
-			uiController.SetScore (client.GetTutoScore ());
-			uiController.HideResults ();
-
-			if (client.GetTutoEnd ()) {
-				uiController.EndView (client.GetTutoScore (), client.GetTutoTMax());
-				uiController.ShowNextButton (glow: true);
-				state = TL.TutoEndWU;
-			} else {
-				uiController.ChoiceViewWU (client.GetTutoGoodInHand());
-				state = TL.GameChoiceWU;	
-			}
+			BeginTurn (training:true);
 			break;
 		
-		case TL.TutoEndWU:
+		case TL.TrainingEndWU:
 
-			uiController.TutoReady ();
-			state = TL.TutoReadyWU;
+			uiProgressBars.ShowProgress (false);
+			uiController.TrainingReady ();
+			state = TL.TrainingReadyWU;
 			break;
 
-		case TL.TutoReadyWU:
-
-			uiController.TutoReady (false);
-			uiController.HomeWS ();
-			uiController.ShowNextButton (visible: true, glow: true);
-			client.TutorialDone ();
-			state = TL.TutoDoneWS;
+		case TL.TrainingReadyWU:
+			
+			uiTutorial.ShowText (false);
+			uiProgressBars.StatusMessage (Texts.waitingOtherPlayers, glow: true);
+			// uiController.ShowNextButton (visible: true, glow: true);
+			client.TrainingDone ();
+			state = TL.TrainingDoneWS;
 			break;
 
 		case TL.GameChoiceWU:
@@ -190,17 +162,7 @@ public class GameController : MonoBehaviour {
 		
 		case TL.GameResultWU:
 
-			uiController.SetScore (score);
-			uiController.HideResults ();
-
-			if (client.GetEnd ()) {
-				uiController.EndView (score, tMax);
-				state = TL.End;
-			} else {
-				UpdateGoodInHand ();
-				uiController.ChoiceViewWU (goodInHand);
-				state = TL.GameChoiceWU;	
-			}
+			BeginTurn ();
 			break;
 		}
 	}
@@ -213,25 +175,32 @@ public class GameController : MonoBehaviour {
 
 		if (client.GetWait ()) {
 
-			uiController.StatusProgressBar (
-				progress: client.GetProgress (), 
-				msg: "En attente des autres joueurs");
+			if (state == TL.SurveyWS || state == TL.TrainingDoneWS)  {
+				uiController.ShowLogo ();
+				uiProgressBars.StatusMessage (Texts.waitingOtherPlayers, glow: true);
+			}
+
+			uiProgressBars.ShowWaitingMessage (client.GetProgress ());
+
 			client.RetryDemand ();
 
 		} else {
+
+			uiProgressBars.ShowStatus (false);
+			uiController.ShowLogo(false);
 
 			switch (state) {
 
 			case TL.InitWS:
 
 				// Initialize things
-				uiController.SetPseudo (client.GetPseudo ());
+				uiController.Init (client.GetPseudo (), client.GetNGoods ());
 					
-				if (client.GetCurrentStep () == GameStep.tutorial) {
+				if (client.GetStep () == GameStep.tutorial) {
 					BeginTutorial ();
-				} else if (client.GetCurrentStep () == GameStep.survey) {
+				} else if (client.GetStep () == GameStep.survey) {
 					BeginSurvey ();
-				} else if (client.GetCurrentStep () == GameStep.game) {
+				} else if (client.GetStep () == GameStep.game) {
 					BeginGame ();
 				} else {
 					throw new Exception ();
@@ -241,26 +210,23 @@ public class GameController : MonoBehaviour {
 
 			case TL.SurveyWS:
 				
-				if (client.GetSkipTutorial ()) {
-					BeginGame ();
-				} else {
-					BeginTutorial ();
-				}
+				BeginTutorial ();
 				break;
 
-			case TL.TutoChoiceWS:
+			case TL.TrainingChoiceWS:
 
 				success = client.GetTutoSuccess ();
 				t = client.GetTutoT ();
 				score = client.GetTutoScore ();
+				end = client.GetTutoEnd ();
 
-				uiController.UpdateRadialProgressBar (t, tMax);
+				uiProgressBars.UpdateRadial (t, tMax);
 				uiController.ResultView (success, goodInHand, goodDesired);
 
-				state = TL.TutoResultWU;
+				state = TL.TrainingResultWU;
 				break;
 			
-			case TL.TutoDoneWS:
+			case TL.TrainingDoneWS:
 
 				BeginGame ();
 				break;
@@ -269,26 +235,26 @@ public class GameController : MonoBehaviour {
 
 				success = client.GetSuccess ();
 				t = client.GetT ();
+				score = client.GetScore ();
+				end = client.GetEnd ();
 
-				uiController.UpdateRadialProgressBar (t, tMax);
+				uiProgressBars.UpdateRadial (t, tMax);
 				uiController.ResultView (success, goodInHand, goodDesired);
 
 				state = TL.GameResultWU;
 				break;
 			}
-
 		}
-			
 	}
 
 	// -------------------------- //
 
 	void BeginTutorial () {
 		
-		uiController.ShowNextButton (glow:true);
-		uiController.HideLogoAndStatusBar ();
-		uiController.TutoThreeGoods ();
-		state = TL.TutoThreeGoodsWU;
+		uiController.ShowLogo (false);
+		uiProgressBars.ShowStatus (false);
+		uiTutorial.Begin ();
+		state = TL.TutorialWU;
 	}
 
 	void BeginGame (bool training=false) {
@@ -300,40 +266,44 @@ public class GameController : MonoBehaviour {
 			goodInHand = client.GetTutoGoodInHand (); 
 			goodDesired = client.GetTutoGoodDesired (); 
 			score = client.GetTutoScore ();
-		
+
+			uiController.ShowTitle ();
+			uiController.SetTitle (Title.training);
 		} else {
 			choiceMade = client.GetChoiceMade ();
 			t = client.GetT ();
 			tMax = client.GetTMax (); 
 			goodInHand = client.GetGoodInHand (); 
 			goodDesired = client.GetGoodDesired (); 
-			score = client.GetTutoScore ();
+			score = client.GetScore ();
+
+			uiController.ShowTitle (visible: false);
 		}
 			
 		uiController.SetScore (score);
-		uiController.ShowTitle (visible: false);
 
 		uiController.ShowScore ();
-		uiController.ShowProgress ();
 
-		uiController.UpdateRadialProgressBar (t, tMax);
+		uiProgressBars.ShowProgress ();
+		uiProgressBars.UpdateRadial (t, tMax);
+		uiProgressBars.ShowStatus (false);
 
-		uiController.HideLogoAndStatusBar ();
+		uiController.ShowLogo (false);
 		uiController.ShowCharacter ();
 
 		if (choiceMade) {
-			uiController.ChoiceMadeViewWS (goodInHand, goodDesired);
+			uiController.ChoiceMadeView (goodInHand, goodDesired);
 			if (training) {
-				client.TutorialChoice (goodDesired);
-				state = TL.TutoChoiceWS;
+				client.TrainingChoice (goodDesired);
+				state = TL.TrainingChoiceWS;
 			} else {
 				client.Choice (goodDesired);
 				state = TL.GameChoiceWS;
 			}
 		} else {
-			uiController.ChoiceViewWU (goodInHand);
+			uiController.ChoiceView (goodInHand);
 			if (training) {
-				state = TL.TutoChoiceWU;
+				state = TL.TrainingChoiceWU;
 			} else {
 				state = TL.GameChoiceWU;		
 			}
@@ -342,7 +312,7 @@ public class GameController : MonoBehaviour {
 
 	void BeginSurvey () {
 
-		uiController.SurveyWU ();
+		survey.View ();
 		state = TL.SurveyWU;
 	}
 
@@ -353,9 +323,32 @@ public class GameController : MonoBehaviour {
 				goodInHand = Good.wood;
 			} else {
 				goodInHand = goodDesired;
-			}
-			
+			}		
 		} 
 	}
 
+	void BeginTurn (bool training=false) {
+
+		uiController.SetScore (score);
+		uiController.HideResults ();
+
+		if (end) {
+			uiController.EndView (score, tMax);
+
+			if (training) {
+				uiButtons.ShowNext (glow: true);
+				state = TL.TrainingEndWU;
+			} else {
+				state = TL.End;
+			}
+		} else {
+			UpdateGoodInHand ();
+			uiController.ChoiceView (goodInHand);
+			if (training) {
+				state = TL.TrainingChoiceWU;
+			} else {
+				state = TL.GameChoiceWU;	
+			}
+		}
+	}
 }

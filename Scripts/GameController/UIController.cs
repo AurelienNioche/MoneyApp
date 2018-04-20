@@ -11,31 +11,8 @@ class Bool {
 	public static string glow = "Glow";
 }
 
-class Good {
-	public static int wood = 0;
-	public static int wheat = 1;
-	public static int stone = 2;
-}
-
 
 public class UIController : MonoBehaviour {
-
-	// Buttons
-	public Button buttonNext;
-	public Button buttonPrevious;
-
-	public Button buttonWoodWheat;
-	public Button buttonWoodStone;
-	public Button buttonStoneWood;
-	public Button buttonStoneWheat;
-
-	// Bottom: status bar
-	public Slider statusProgressBar;
-	public Text statusText;
-
-	// Top left: radial progress bar
-	public Image radialProgressBar;
-	public Text pseudo;
 
 	// Top right: Score
 	public Text score;
@@ -48,180 +25,48 @@ public class UIController : MonoBehaviour {
 	public Image ScoreLogo;
 	public Image pictureSuccess;
 	public Image pictureLost;
+
 	public Image woodInHand;
 	public Image stoneInHand;
+	public Image clayInHand;
+
 	public Image woodInBox;
 	public Image stoneInBox;
+	public Image clayInBox;
+
 	public Image woodDesired;
 	public Image stoneDesired;
 	public Image wheatDesired;
+	public Image clayDesired;
+
 	public Image character;
 	public Image arrow;
 
-	//  --------- Tutorial ----------- //
-
-	public Image illustrationThreeGoods;
-	public Image illustrationSpecialization;
-	public Image illustrationMarkets;
-	public Image illustrationYou;
-	public Image illustrationStrategies;
-
-	public Text textThreeGoods;
-	public Text textSpecialization;
-	public Text textMarkets;
-	public Text textYou;
-	public Text textStrategyDirect;
-	public Text textStrategyIndirect;
-	public Text textTraining;
-	public Text textReady;
-
-	// -------- Survey --------- //
-
-	public GameObject survey;
-	public InputField age;
-	public Toggle male;
-	public Toggle female;
-	public Toggle consent;
-
 	// -------------------- //
 
-	GameController gameController;
-
-	int goodChosen;
+	UIButtons uiButtons;
+	UITutorial uiTutorial;
+	UIProgressBars uiProgressBars;
 
 	// -------------- Inherited from MonoBehavior ---------------------------- //
 
 	void Awake () {
 		
-		gameController = GetComponent<GameController> ();
-		AssociatePushButtons ();
+		uiButtons = GetComponent<UIButtons> ();
+		uiTutorial = GetComponent<UITutorial> ();
+		uiProgressBars = GetComponent<UIProgressBars> ();
 	}
 
 	void Start () {}
 
 	void Update () {}
 
-	// ---------------- Get components ----------------------- //
-
-	// ---------------- Get components ----------------------- //
-
-	void AssociatePushButtons () {
-
-		buttonNext.onClick.AddListener (ButtonNext);
-		buttonPrevious.onClick.AddListener (ButtonPrevious);
-
-		buttonStoneWheat.onClick.AddListener (ButtonStoneWheat);
-		buttonStoneWood.onClick.AddListener (ButtonStoneWood);
-		buttonWoodWheat.onClick.AddListener (ButtonWoodWheat);
-		buttonWoodStone.onClick.AddListener (ButtonWoodStone);
-	}
-
-	// ------------------------------------------ //
-
-	void ButtonNext () {
-
-		Debug.Log("UIController: User clicked on button 'Next'.");
-
-		buttonNext.interactable = false;
-		Anim (buttonNext, visible: false);
-
-		gameController.UserReplied ();
-	}
-
-	void ButtonPrevious () {
-		
-		Debug.Log("UIController: User clicked on button 'Previous'.");
-	
-	}
-
-	void ButtonWoodWheat () {
-
-		buttonWoodStone.interactable = false;
-		buttonWoodWheat.interactable = false;
-
-		Anim (buttonWoodWheat, glow: true);
-		Anim (buttonWoodStone, visible: false);
-
-		goodChosen = Good.wheat;
-
-		gameController.UserReplied ();
-	}
-
-	void ButtonWoodStone () {
-
-		buttonWoodStone.interactable = false;
-		buttonWoodWheat.interactable = false;
-
-		Anim (buttonWoodStone, glow: true);
-		Anim (buttonWoodWheat, visible: false);
-
-		goodChosen = Good.stone;
-
-		gameController.UserReplied ();
-	}
-
-	void ButtonStoneWood () {
-
-		buttonStoneWood.interactable = false;
-		buttonStoneWheat.interactable = false;
-
-		Anim (buttonStoneWood, glow: true);
-		Anim (buttonStoneWheat, visible: false);
-
-		goodChosen = Good.wood;
-
-		gameController.UserReplied ();
-	}
-
-	void ButtonStoneWheat () {
-
-		buttonStoneWood.interactable = false;
-		buttonStoneWheat.interactable = false;
-
-		Anim (buttonStoneWheat, glow: true);
-		Anim (buttonStoneWood, visible: false);
-
-		goodChosen = Good.wheat;
-
-		gameController.UserReplied ();
-	}
-
-	// --------------- Communication with gameController ---------- //
-
-	public void ShowNextButton (bool visible=true, bool glow=false) {
-		buttonNext.interactable = true;
-		Anim (buttonNext, visible: visible, glow: glow);
-	}
-
-	public void ShowWoodButtons (bool value=true) {
-
-		foreach (Button b in new Button[] {buttonWoodStone, buttonWoodWheat}) {
-			Anim (b, visible: value, glow:true);
-			b.interactable = true;
-		}
-	}
-
-	public void ShowStoneButtons (bool value=true) {
-		foreach (Button b in new Button[] {buttonStoneWood, buttonStoneWheat}) {
-			Anim (b, visible: value, glow: true);
-			b.interactable = true;
-		}
-	}
-
 	// ----------------- //
 
-	void Anim (GameObject go, bool visible=true, bool glow=false) {
+	public void Anim (GameObject go, bool visible=true, bool glow=false) {
 		Animator anim = go.GetComponent<Animator> ();
 		anim.SetBool (Bool.visible, visible);
 		anim.SetBool(Bool.glow, glow);
-	}
-
-	void Anim (Text txt, bool visible=true, bool glow=false) {
-		Anim (txt.gameObject, visible, glow);
-	}
-
-	void Anim (Image img, bool visible=true, bool glow=false) {
-		Anim (img.gameObject, visible, glow);
 	}
 
 	void Anim (Button btn, bool visible=true, bool glow=false) {
@@ -232,93 +77,42 @@ public class UIController : MonoBehaviour {
 		Anim (slider.gameObject, visible, glow);
 	}
 
-
-	// -------------------------- //
-
-	public void UpdateRadialProgressBar (int value, int maxValue) {
-		radialProgressBar.fillAmount = (float) value / maxValue;
+	void Anim (Text text, bool visible=true, bool glow=false) {
+		Anim (text.gameObject, visible, glow);
 	}
 
-	public void UpdateStatusProgressBar (int progress) {
-		statusProgressBar.value = progress / 100f;
-	}
-		
-	// ------------------------- //
-
-	void StatusMessage (string msg, Color color=default(Color), bool glow=false) {
-
-		Anim (statusText, visible: true, glow: glow);
-		statusText.text = msg;
-		if (color == default(Color)) {
-			statusText.color = Color.black;
-		} else {
-			statusText.color = color;
-		}
+	void Anim (Image image, bool visible=true, bool glow=false) {
+		Anim (image.gameObject, visible, glow);
 	}
 
-	// -------------------- //
+	// --------------- Communication with gameController ---------- //
 
-	public bool EvaluateUserData () {
+	public void Init (string pseudo, int nGoods) {
 
-		if (age.text.Length == 0) {
+		Debug.Log ("nGoods: " + nGoods);
 
-			StatusMessage ("Vous devez indiquer votre age!", color:Color.red, glow: true);
-			return false;
-		}	
-
-		if (!male.isOn && !female.isOn) {
-			
-			StatusMessage ("Vous devez indiquer votre sexe!", color: Color.red, glow: true);
-			return false;
-		}
-
-		if (!consent.isOn) {
-			
-			StatusMessage ("Vous devez donner votre consentement!", color: Color.red, glow: true);
-			return false;
-		}
-			
-		return true;
+		uiProgressBars.Init (pseudo);
+		uiButtons.Init (nGoods);
+		uiTutorial.Init (nGoods, pseudo);
 	}
 
 	// ------------------- // 
 
 	public int GetGoodChosen () {
-		return goodChosen;
+		return uiButtons.GetGoodChosen();
 	}
 
-	public int GetAge () {
-		return int.Parse (age.text);
-	}
+	// ---------------------- //
 
-	public string GetSex () {
-		if (male.isOn) {
-			return "male";
-		} else {
-			return "female";
-		}
-	}
-
-	// --------------------- //
-
-	public void SetPseudo (string value) {
-		pseudo.text = value;
-		textYou.text = String.Format (textYou.text, value);
+	public void SetTitle (string value) {
+		title.text = value;
 	}
 		
-	// ----------------------- //
-
-	void ShowStatusBar(bool visible=true) {
-		Anim (statusProgressBar, visible: visible);
-		Anim (statusText, visible: visible);
+	public void SetScore (int n) {
+		score.text = n.ToString ();
 	}
 
-
-	public void ShowHome (bool visible=true) {
-		
-		Anim (logo, visible: visible);
-		Anim (title, visible: visible);
-	}
+	// ------- //
 
 	public void ShowCharacter (bool visible=true) {
 		Anim (character, visible:visible);
@@ -329,223 +123,204 @@ public class UIController : MonoBehaviour {
 		Anim (score, visible: visible);
 	}
 
-	public void ShowProgress (bool visible=true) {
-
-		Anim (radialProgressBar, visible: visible);
-		Anim (pseudo, visible: visible);
-
-	}
-
 	public void ShowTitle (bool visible=true) {
-		Anim (title, visible: false);
+		Anim (title, visible: visible);
 	}
 
-
-	public void HideLogoAndStatusBar () {
-		ShowStatusBar (false);
-		Anim (logo, visible: false);
+	public void ShowLogo (bool visible=true, bool glow=false) {
+		Anim (logo, visible: visible, glow: glow);
 	}
 
-	public void HideResults () {
-
-		Anim (buttonNext, visible: false);
-
-		Anim (pictureSuccess, visible: false);
-		Anim (pictureLost, visible: false);
-
-		Anim (arrow, visible: false);
-
-		Anim (woodInHand, visible: false);
-		Anim (stoneInHand, visible: false);
-
-		Anim (woodDesired, visible: false);
-		Anim (wheatDesired, visible: false);
-		Anim (stoneDesired, visible: false);
-
-		Anim (scoreToAdd, visible: false);
-	}
-
-	// --------------------- //
-
-	public void SetScore (int n) {
-		score.text = n.ToString ();
-	}
-
-	// -------------------- //
+	// ------- HOME VIEW --------- //
 
 	public void HomeWU () {
 
-		ShowHome ();
-		Anim (buttonNext, visible: true, glow: true);
+		ShowLogo ();
+		ShowTitle ();
+		SetTitle (Title.title);
+		uiButtons.ShowNext (glow: true);
 	}
 
 	public void HomeWS () {
 
-		Anim (logo, glow: true);
+		ShowLogo (glow: true);
 	}
 
-	public void SurveyWU () {
+	// -------- TRAINING VIEW ----- //
 
-		ShowStatusBar (false);
-		Anim (logo, visible: false);
-		ShowNextButton ();
-		Anim (survey, visible: true);
-		title.text = "Prélude";
+	public void TrainingBegin () {
+
+		Anim (logo, visible: true);
+		uiButtons.ShowNext (glow: true);
+		uiTutorial.SetText (Texts.training);
 	}
 
-	public void SurveyWS () {
+	public void HideTrainingMsg () {
 
-		Anim (survey, visible: false);
-		Anim (logo, visible: true, glow: true);
+		ShowLogo (visible: false);
+		uiTutorial.ShowText (false);
 	}
 
-	public void TutoThreeGoods (bool visible=true) {
+	public void TrainingReady () {
 
-		title.text = "Prélude";
+		Anim (woodInBox, false);
+		Anim (stoneInBox, false);
+		Anim (clayInBox, false);
 
-		Anim (illustrationThreeGoods, visible: visible);
-		Anim (textThreeGoods, visible: visible);
+		Anim (character, false);
+		Anim (scoreFinal, false);
+
+		Anim (wheatDesired, false);
+
+		title.text = Title.title;
+		Anim (title);
+
+		Anim (logo);
+		uiTutorial.SetText(Texts.ready);
+		uiTutorial.ShowText ();
+		uiButtons.ShowNext (glow: true);
 	}
 
-	public void TutoSpec (bool visible=true) {
+	// ---------------------------------- //
 
-		Anim (illustrationSpecialization, visible: visible);
-		Anim (textSpecialization, visible: visible);
-	}
-
-	public void TutoMarkets (bool visible=true) {
-
-		Anim (illustrationMarkets, visible: visible);
-		Anim (textMarkets, visible: visible);
-	}
-
-	public void TutoYou (bool visible=true) {
-
-		Anim (illustrationYou, visible: visible);
-		Anim (textYou, visible: visible);
-	}
-
-	public void TutoStrategyDirect (bool visible=true) {
-
-		Anim (illustrationStrategies, visible: visible);
-		Anim (textStrategyDirect, visible: visible);
-	}
-
-	public void TutoStrategyIndirect (bool visible=true) {
-
-		Anim (illustrationStrategies, visible: visible);
-		Anim (textStrategyIndirect, visible: visible);
-	}
-		
-	public void TutoTraining (bool visible=true) {
-
-		Anim (illustrationStrategies, visible: visible);
-		Anim (textTraining, visible: visible);
-	}
-
-	public void TutoReady (bool visible=true) {
-
-		Anim (woodInBox, visible: false);
-		Anim (stoneInBox, visible: false);
-		Anim (character, visible: false);
-		Anim (scoreFinal, visible: false);
-		Anim (wheatDesired, visible: false);
-		title.text = "Ganomics";
-		Anim (title, visible: true);
-
-		Anim (logo, visible: visible);
-		Anim (textReady, visible: visible);
-	}
-
-	// ----------------------------------- //
-		
-	public void StatusProgressBar (int progress, string msg) {
-
-		ShowStatusBar (true);
-		UpdateStatusProgressBar (progress);
-		StatusMessage (msg);
-	}
-
-	// ----------------------------- //
-
-	public void ChoiceViewWU (int goodInHand) {
+	public void ChoiceView (int goodInHand) {
 
 		HideResults ();
 
-		if (goodInHand == Good.wood) {
-			Anim (woodInBox, visible: true);
-			ShowWoodButtons ();
-		} else {
-			Anim (stoneInBox, visible: true);
-			ShowStoneButtons ();
+		switch (goodInHand) {
+
+		case Good.wood:
+			Anim (woodInBox);
+			uiButtons.ShowWood (glow: true);
+			break;
+		
+		case Good.stone:
+			Anim (stoneInBox);
+			uiButtons.ShowStone (glow: true);
+			break;
+		
+		case Good.clay:
+			Anim (clayInBox);
+			uiButtons.ShowClay (glow: true);
+			break;
+		
+		default:
+			throw new Exception ("Good " + goodInHand + " doesn't exist");
 		}
+
 	}
 
 	public void ResultView (bool success, int goodInHand, int goodDesired) {
 
-		ShowStoneButtons (false);
-		ShowWoodButtons (false);
+		uiButtons.ShowStone (false);
+		uiButtons.ShowWood (false);
+		uiButtons.ShowClay (false);
 
 		if (success) {
 
-			Anim (pictureSuccess, visible: true);
-			Anim (arrow, visible: true);
+			Anim (pictureSuccess);
+			Anim (arrow);
 
 			// Depending of good in hand
-			if (goodInHand == Good.wood) {
-				Anim (woodInBox, visible: false);
-				Anim (woodInHand, visible: true);
-			} else {
-				Anim (stoneInBox, visible: false);
-				Anim (stoneInHand, visible: true);
+			switch (goodInHand) {
+
+			case Good.wood:
+				Anim (woodInBox, false);
+				Anim (woodInHand);
+				break;
+			
+			case Good.stone:
+				Anim (stoneInBox, false);
+				Anim (stoneInHand);
+				break;
+			
+			case Good.clay:
+				Anim (clayInBox, false);
+				Anim (clayInHand);
+				break;
+
+			default:
+				throw new Exception ("Good " + goodInHand + " doesn't exist");
 			}
 
 			// Depending of the desired good
-			if (goodDesired == Good.wheat) {
-				Anim (scoreToAdd, visible: true, glow: true);
-				Anim (wheatDesired, visible: true);
-			} else if (goodDesired == Good.stone) {
-				Anim (stoneDesired, visible: true);
-			} else {
-				Anim (woodDesired, visible: true);
+			switch (goodDesired) {
+			case Good.wheat:
+				Anim (scoreToAdd, glow: true);
+				Anim (wheatDesired);
+				break;
+			
+			case Good.wood:
+				Anim (woodDesired);
+				break;
+
+			case Good.stone:
+				Anim (stoneDesired);
+				break;
+
+			case Good.clay:
+				Anim (clayDesired);
+				break;
+
+			default:
+				throw new Exception ("Good " + goodDesired + " doesn't exist");
 			}
 
 		// if not a success...
 		} else {
-			Anim (pictureLost, visible: true);
+			Anim (pictureLost);
 		}
 
-		ShowNextButton (visible: true, glow: true);
-
+		uiButtons.ShowNext (glow: true);
 	}
 
-	public void ChoiceMadeViewWS (int goodInHand, int goodDesired) {
+	public void HideResults () {
 
-		if (goodInHand == Good.wood) {
-			Anim (woodInBox, visible: true);
-			if (goodDesired == Good.wheat) {
-				Anim (buttonWoodWheat, visible: true, glow: true);
-			} else {
-				Anim (buttonWoodStone, visible: true, glow: true);
-			}
-		} else {
-			Anim (stoneInHand, visible: false);
-			ShowStoneButtons ();
+		uiButtons.ShowNext (false);
+
+		foreach (Image img in new Image[] {
+			pictureSuccess, pictureLost,
+			arrow,
+			woodInHand, stoneInHand, clayInHand,
+			woodDesired, wheatDesired, stoneDesired, clayDesired
+		}) {
+			Anim (img, false);
+		}
+
+		Anim (scoreToAdd, false);
+	}
+
+	public void ChoiceMadeView (int goodInHand, int goodDesired) {
+
+		uiButtons.ShowCorrespondingButton (goodInHand: goodInHand, goodDesired: goodDesired);
+
+		switch (goodInHand) {
+
+		case Good.wood:
+			Anim (woodInBox);
+			break;
+
+		case Good.stone:
+			Anim (stoneInBox);
+			break;
+
+		case Good.clay:
+			Anim (clayInHand);
+			break;
+		default:
+			throw new Exception ("Good " + goodDesired + " doesn't exist");
 		}
 	}
 
 	public void EndView (int scoreValue, int tMax) {
 
-		UpdateRadialProgressBar (tMax, tMax);
+		uiProgressBars.UpdateRadial (tMax, tMax);
 		ShowScore (false);
 		scoreFinal.text = scoreValue.ToString ();
-		Anim (scoreFinal, visible: true, glow:true);
-		Anim (wheatDesired, visible: true);
-		title.text = "End";
-		Anim (title, visible: true);
+		Anim (scoreFinal, glow: true);
+		Anim (wheatDesired);
+		title.text = Title.end;
+		Anim (title);
 	}
 
 }
-
-
-
