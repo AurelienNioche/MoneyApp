@@ -146,7 +146,7 @@ public class UIButtons : MonoBehaviour {
 
 	void Next () {
 
-		Debug.Log("UIController: User clicked on button 'Next'.");
+		Debug.Log("[UIButtons] User clicked on button 'Next'.");
 
 		next.interactable = false;
 		Anim (next, visible: false);
@@ -156,11 +156,13 @@ public class UIButtons : MonoBehaviour {
 
 	void Previous () {
 
-		Debug.Log("UIController: User clicked on button 'Previous'.");
+		Debug.Log("[UIButtons] User clicked on button 'Previous'.");
 
 	}
 
 	void WoodWheat () {
+
+		Debug.Log("[UIButtons] User clicked on button 'WoodWheat'.");
 
 		woodStone.interactable = false;
 		woodWheat.interactable = false;
@@ -177,6 +179,8 @@ public class UIButtons : MonoBehaviour {
 
 	void WoodStone () {
 
+		Debug.Log("[UIButtons] User clicked on button 'WoodStone'.");
+
 		woodStone.interactable = false;
 		woodWheat.interactable = false;
 		woodClay.interactable = false;
@@ -191,6 +195,8 @@ public class UIButtons : MonoBehaviour {
 	}
 
 	void WoodClay () {
+
+		Debug.Log("[UIButtons] User clicked on button 'WoodClay'.");
 
 		woodStone.interactable = false;
 		woodWheat.interactable = false;
@@ -207,6 +213,8 @@ public class UIButtons : MonoBehaviour {
 
 	void StoneWood () {
 
+		Debug.Log("[UIButtons] User clicked on button 'StoneWood'.");
+
 		stoneWood.interactable = false;
 		stoneWheat.interactable = false;
 		stoneClay.interactable = false;
@@ -221,6 +229,8 @@ public class UIButtons : MonoBehaviour {
 	}
 
 	void StoneWheat () {
+
+		Debug.Log("[UIButtons] User clicked on button 'StoneWheat'.");
 
 		stoneWood.interactable = false;
 		stoneWheat.interactable = false;
@@ -237,6 +247,8 @@ public class UIButtons : MonoBehaviour {
 
 	void StoneClay () {
 
+		Debug.Log("[UIButtons] User clicked on button 'StoneClay'.");
+
 		stoneWood.interactable = false;
 		stoneWheat.interactable = false;
 		stoneClay.interactable = false;
@@ -251,6 +263,8 @@ public class UIButtons : MonoBehaviour {
 	}
 
 	void ClayWood () {
+
+		Debug.Log("[UIButtons] User clicked on button 'ClayWood'.");
 
 		clayStone.interactable = false;
 		clayWood.interactable = false;
@@ -267,6 +281,8 @@ public class UIButtons : MonoBehaviour {
 
 	void ClayStone () {
 
+		Debug.Log("[UIButtons] User clicked on button 'ClayStone'.");
+
 		clayStone.interactable = false;
 		clayWood.interactable = false;
 		clayWheat.interactable = false;
@@ -282,13 +298,15 @@ public class UIButtons : MonoBehaviour {
 
 	void ClayWheat () {
 
+		Debug.Log("[UIButtons] User clicked on button 'ClayWheat'.");
+
 		clayStone.interactable = false;
 		clayWood.interactable = false;
 		clayWheat.interactable = false;
 
-		Anim (clayStone, glow: true);
+		Anim (clayWheat, glow: true);
 		Anim (clayWood, visible: false);
-		Anim (clayWheat, visible: false);
+		Anim (clayStone, visible: false);
 
 		goodChosen = Good.wheat;
 
@@ -305,7 +323,7 @@ public class UIButtons : MonoBehaviour {
 	}
 
 	public void ShowNext (bool visible=true, bool glow=false) {
-		next.interactable = true;
+		next.interactable = visible;
 		Anim (next, visible: visible, glow: glow);
 	}
 
@@ -334,10 +352,10 @@ public class UIButtons : MonoBehaviour {
 				Anim (woodStone, visible: true, glow: true);
 				break;
 			case Good.clay:
-				Anim (clayStone, visible: true, glow: true);
+				Anim (woodClay, visible: true, glow: true);
 				break;
 			default:
-				throw new Exception ("Good " + goodDesired + " doesn't exist");
+				throw new Exception ("[UIButtons] Good " + goodDesired + " doesn't exist or is not a possibility.");
 			}
 			break;
 
@@ -353,7 +371,7 @@ public class UIButtons : MonoBehaviour {
 				Anim (stoneClay, visible: true, glow: true);
 				break;
 			default:
-				throw new Exception ("Good " + goodDesired + " doesn't exist");
+				throw new Exception ("[UIButtons] Good " + goodDesired + " doesn't exist or is not a possibility.");
 			}
 			break;
 
@@ -369,15 +387,13 @@ public class UIButtons : MonoBehaviour {
 				Anim (clayStone, visible: true, glow: true);
 				break;
 			default:
-				throw new Exception ("Good " + goodDesired + " doesn't exist");
+				throw new Exception ("[UIButtons] Good " + goodDesired + " doesn't exist or is not a possibility.");
 			}
 			break;
 		default:
-			throw new Exception ("Good " + goodInHand + " doesn't exist");
+			throw new Exception ("[UIButtons] Good " + goodInHand + " doesn't exist or is not a possibility.");
 		}
 	}
 
-	public int GetGoodChosen() {
-		return goodChosen;
-	}
+	public int GetGoodChosen() {return goodChosen;}
 }

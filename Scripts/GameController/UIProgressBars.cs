@@ -47,16 +47,19 @@ public class UIProgressBars : MonoBehaviour {
 	// ------------------------ //
 
 	public void ShowStatus (bool visible=true) {
+
 		Anim (statusProgressBar, visible: visible);
 		Anim (statusText, visible: visible);
 	}
 
 	public void ShowProgress (bool visible=true) {
+
 		Anim (radialProgressBar, visible: visible);
 		Anim (pseudo, visible: visible);
 	}
 
 	public void ShowWaitingMessage (int progress) {
+
 		UpdateStatus (progress);
 		ShowStatus (true);
 		StatusMessage (Texts.waitingOtherPlayers);

@@ -89,17 +89,9 @@ public class UIController : MonoBehaviour {
 
 	public void Init (string pseudo, int nGoods) {
 
-		Debug.Log ("nGoods: " + nGoods);
-
 		uiProgressBars.Init (pseudo);
 		uiButtons.Init (nGoods);
 		uiTutorial.Init (nGoods, pseudo);
-	}
-
-	// ------------------- // 
-
-	public int GetGoodChosen () {
-		return uiButtons.GetGoodChosen();
 	}
 
 	// ---------------------- //

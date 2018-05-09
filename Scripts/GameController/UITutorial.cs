@@ -294,6 +294,7 @@ public class UITutorial : MonoBehaviour {
 		Anim (win);
 		Anim (plusOne, glow: true);
 		Anim (woodInBox, glow: true);
+
 		SetText (Texts.production);
 	}
 
@@ -304,6 +305,7 @@ public class UITutorial : MonoBehaviour {
 		Anim (woodInBox, false);
 		Anim (character, false);
 		Anim (frame, false);
+
 		SetText (Texts.production);
 	}
 

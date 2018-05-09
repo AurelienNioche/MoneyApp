@@ -485,6 +485,11 @@ Prefab:
       propertyPath: plusOne
       value: 
       objectReference: {fileID: 1264922392}
+    - target: {fileID: 114452315554507466, guid: a65df55318a31499db01c5ca11f95260,
+        type: 2}
+      propertyPath: url
+      value: ws://51.15.6.148:8018/
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: a65df55318a31499db01c5ca11f95260, type: 2}
   m_IsPrefabParent: 0

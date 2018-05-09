@@ -14,9 +14,9 @@ public class Texts {
 	public static string specStone4G = "Certaines produisaient de la pierre et désiraient de l'argile.";
 	public static string specClay = "Certaines autres encore produisaient de l'argile et désiraient du bois.";
 	public static string noCoincidenceP1 = "Notez que dans ce monde, les besoins n'étaient jamais symétriques :\n" +
-		"si quelqu'un produit du bois et désire du blé...";
-	public static string noCoincidenceP2 = "...il n'existe par exemple personne qui produit du blé et consomme du bois.";
-	public static string exchange = "Pour obtenir le bien souhaité, \nchaque personne était obligée de procdéder à une suite d'échanges.";
+		"si quelqu'un produisait du bois et désirait du blé...";
+	public static string noCoincidenceP2 = "...il n'existait par exemple personne qui produisait du blé et désirait du bois.";
+	public static string exchange = "Pour obtenir le bien souhaité, \nchaque personne était obligée de procéder à une suite d'échanges.";
 	public static string you = "Vous allez incarner {0}, \nun producteur de bois à la recherche de blé.";
 	public static string directStrategy = "Pour obtenir du blé, vous aurez deux stratégies possibles : " +
 		"tenter d'échanger votre bois contre du blé directement... ";

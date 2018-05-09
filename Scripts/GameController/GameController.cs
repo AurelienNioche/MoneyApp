@@ -31,7 +31,6 @@ public class GameController : MonoBehaviour {
 	UIButtons uiButtons;
 	Survey survey;
 
-
 	TL state;
 
 	Client client;
@@ -71,7 +70,7 @@ public class GameController : MonoBehaviour {
 	// ------------------------------ //
 
 	void LogState() {
-		Debug.Log ("GameController: My state is '" + state + "'.");
+		Debug.Log ("[GameController] My state is '" + state + "'.");
 	}
 
 	IEnumerator ActionWithDelay (Action methodName, float seconds) {
@@ -84,7 +83,7 @@ public class GameController : MonoBehaviour {
 
 	public void UserReplied () {
 
-		Debug.Log ("GameController: User clicked on Next");
+		Debug.Log ("[GameController] User replied");
 
 		switch (state) {
 
@@ -109,9 +108,11 @@ public class GameController : MonoBehaviour {
 
 			if (!uiTutorial.IsLastStep ()) {
 				uiTutorial.NextStep ();
+			
 			} else {
 				uiTutorial.End ();
 				uiController.TrainingBegin ();
+
 				state = TL.TrainingStartWU;
 			}
 			break;
@@ -119,12 +120,13 @@ public class GameController : MonoBehaviour {
 		case TL.TrainingStartWU:
 
 			uiController.HideTrainingMsg ();
+
 			BeginGame (training: true);
 			break;
 
 		case TL.TrainingChoiceWU:
 
-			goodDesired = uiController.GetGoodChosen ();
+			goodDesired = uiButtons.GetGoodChosen ();
 
 			client.TrainingChoice (goodDesired);
 			state = TL.TrainingChoiceWS;
@@ -146,14 +148,14 @@ public class GameController : MonoBehaviour {
 			
 			uiTutorial.ShowText (false);
 			uiProgressBars.StatusMessage (Texts.waitingOtherPlayers, glow: true);
-			// uiController.ShowNextButton (visible: true, glow: true);
 			client.TrainingDone ();
+
 			state = TL.TrainingDoneWS;
 			break;
 
 		case TL.GameChoiceWU:
 
-			goodDesired = uiController.GetGoodChosen ();
+			goodDesired = uiButtons.GetGoodChosen ();
 
 			client.Choice (goodDesired);
 
@@ -171,18 +173,16 @@ public class GameController : MonoBehaviour {
 
 	public void ServerReplied () {
 
-		Debug.Log ("GameController: Received response from server.");
+		Debug.Log ("[GameController] Received response from server.");
 
 		if (client.GetWait ()) {
 
 			if (state == TL.SurveyWS || state == TL.TrainingDoneWS)  {
-				uiController.ShowLogo ();
+				uiController.ShowLogo (glow: true);
 				uiProgressBars.StatusMessage (Texts.waitingOtherPlayers, glow: true);
 			}
 
 			uiProgressBars.ShowWaitingMessage (client.GetProgress ());
-
-			client.RetryDemand ();
 
 		} else {
 
@@ -203,7 +203,7 @@ public class GameController : MonoBehaviour {
 				} else if (client.GetStep () == GameStep.game) {
 					BeginGame ();
 				} else {
-					throw new Exception ();
+					throw new Exception (String.Format("[GameController] Step '{0}' was not expected.", client.GetStep()));
 				}
 
 				break;
@@ -215,10 +215,10 @@ public class GameController : MonoBehaviour {
 
 			case TL.TrainingChoiceWS:
 
-				success = client.GetTutoSuccess ();
-				t = client.GetTutoT ();
-				score = client.GetTutoScore ();
-				end = client.GetTutoEnd ();
+				success = client.GetTrainingSuccess ();
+				t = client.GetTrainingT ();
+				score = client.GetTrainingScore ();
+				end = client.GetTrainingEnd ();
 
 				uiProgressBars.UpdateRadial (t, tMax);
 				uiController.ResultView (success, goodInHand, goodDesired);
@@ -260,12 +260,12 @@ public class GameController : MonoBehaviour {
 	void BeginGame (bool training=false) {
 
 		if (training) {
-			choiceMade = client.GetTutoChoiceMade ();
-			t = client.GetTutoT ();
-			tMax = client.GetTutoTMax (); 
-			goodInHand = client.GetTutoGoodInHand (); 
-			goodDesired = client.GetTutoGoodDesired (); 
-			score = client.GetTutoScore ();
+			choiceMade = client.GetTrainingChoiceMade ();
+			t = client.GetTrainingT ();
+			tMax = client.GetTrainingTMax (); 
+			goodInHand = client.GetTrainingGoodInHand (); 
+			goodDesired = client.GetTrainingGoodDesired (); 
+			score = client.GetTrainingScore ();
 
 			uiController.ShowTitle ();
 			uiController.SetTitle (Title.training);
