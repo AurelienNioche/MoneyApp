@@ -1,9 +1,6 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using System;
-using UnityEngine.SceneManagement;
 using AssemblyCSharp;
 
 
@@ -16,7 +13,7 @@ public class Good {
 
 
 public class GameStep {
-	public static string tutorial = "tutorial";
+	public static string training = "training";
 	public static string survey = "survey";
 	public static string game = "game";
 	public static string end = "end";
@@ -24,6 +21,8 @@ public class GameStep {
 
 
 public class GameController : MonoBehaviour {
+
+    public string version;
 
 	UIController uiController;
 	UITutorial uiTutorial;
@@ -62,7 +61,7 @@ public class GameController : MonoBehaviour {
 	}
 
 	void Start () {
-		uiController.HomeWU ();
+		uiController.HomeWU (version);
 	}
 
 	void Update () {}
@@ -96,9 +95,10 @@ public class GameController : MonoBehaviour {
 		case TL.SurveyWU:
 
 			if (survey.EvaluateUserData ()) {
-				survey.View (false);
-				client.Survey (age: survey.GetAge(), sex:survey.GetSex());
-				state = TL.SurveyWS;
+			    survey.View (false);
+                uiController.ShowLogo(visible: true, glow: true);
+			    client.Survey (age: survey.GetAge(), sex:survey.GetSex());
+			    state = TL.SurveyWS;
 			} else {
 				uiButtons.ShowNext ();
 			}
@@ -196,14 +196,16 @@ public class GameController : MonoBehaviour {
 				// Initialize things
 				uiController.Init (client.GetPseudo (), client.GetNGoods ());
 					
-				if (client.GetStep () == GameStep.tutorial) {
+				if (client.GetStep () == GameStep.training) {
 					BeginTutorial ();
 				} else if (client.GetStep () == GameStep.survey) {
 					BeginSurvey ();
 				} else if (client.GetStep () == GameStep.game) {
 					BeginGame ();
 				} else {
-					throw new Exception (String.Format("[GameController] Step '{0}' was not expected.", client.GetStep()));
+					throw new Exception (String.Format(
+                            "[GameController] Step '{0}' was not expected.", 
+                            client.GetStep()));
 				}
 
 				break;
@@ -247,9 +249,17 @@ public class GameController : MonoBehaviour {
 		}
 	}
 
-	// -------------------------- //
+    public void OnDisconnection () {
+        uiController.ShowConnected(false);
+    }
 
-	void BeginTutorial () {
+    public void OnConnection () {
+        uiController.ShowConnected ();
+    }
+
+    // -------------------------- //
+
+    void BeginTutorial () {
 		
 		uiController.ShowLogo (false);
 		uiProgressBars.ShowStatus (false);

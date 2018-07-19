@@ -1,10 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-using AssemblyCSharp;
-
-public class Texts {
+﻿public static class Texts {
 
 	public static string goods = "Il était une fois un monde où il n'existait que {0} biens.";
 	public static string specialization = "Chaque personne produisait un de ces biens mais en désirait un autre.";
@@ -40,7 +34,7 @@ public class Texts {
 	                               "de votre plein gré à l'étude mentionnée.";
 }
 
-public class Title {
+public static class Title {
 	
 	public static string survey = "Prélude";
 	public static string tutorial = "Prélude";
@@ -49,7 +43,7 @@ public class Title {
 	public static string title = "Ganomics";
 }
 
-public class ErrorMsg {
+public static class ErrorMsg {
 	
 	public static string age = "Vous devez indiquer votre âge !";
 	public static string sex = "Vous devez indiquer votre sexe !";

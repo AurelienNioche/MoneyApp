@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Events;
 
 
 class Bool {
@@ -20,6 +17,8 @@ public class UIController : MonoBehaviour {
 	public Text scoreFinal;
 
 	public Text title;
+
+    public Text version;
 
 	public Image logo;
 	public Image ScoreLogo;
@@ -41,6 +40,11 @@ public class UIController : MonoBehaviour {
 
 	public Image character;
 	public Image arrow;
+
+    public Image connected;
+    public Image nonConnected;
+
+    public GameObject connectionIndicator;
 
 	// -------------------- //
 
@@ -104,6 +108,10 @@ public class UIController : MonoBehaviour {
 		score.text = n.ToString ();
 	}
 
+    public void SetVersion (string value) {
+        version.text = value;
+    }
+
 	// ------- //
 
 	public void ShowCharacter (bool visible=true) {
@@ -111,31 +119,50 @@ public class UIController : MonoBehaviour {
 	}
 
 	public void ShowScore (bool visible=true) {
-		Anim (ScoreLogo, visible: visible);
-		Anim (score, visible: visible);
+		Anim (ScoreLogo, visible);
+		Anim (score, visible);
 	}
 
 	public void ShowTitle (bool visible=true) {
-		Anim (title, visible: visible);
+		Anim (title, visible);
 	}
 
 	public void ShowLogo (bool visible=true, bool glow=false) {
-		Anim (logo, visible: visible, glow: glow);
+		Anim (logo, visible, glow);
 	}
+
+    public void ShowVersion (bool visible = true, bool glow = false) {
+        Anim(version, visible, glow);
+    }
+
+    public void ShowConnectionIndicator (bool visible = true, bool glow=false) {
+        Anim(connectionIndicator, visible, glow);
+    }
+
+    public void ShowConnected (bool visible=true) {
+        connected.gameObject.SetActive (visible);
+        nonConnected.gameObject.SetActive (!visible);
+    }
 
 	// ------- HOME VIEW --------- //
 
-	public void HomeWU () {
+	public void HomeWU (string version) {
 
 		ShowLogo ();
 		ShowTitle ();
 		SetTitle (Title.title);
+        SetVersion (version);
 		uiButtons.ShowNext (glow: true);
+
+        ShowVersion ();
+        ShowConnectionIndicator ();
+        ShowConnected (false);
 	}
 
 	public void HomeWS () {
 
 		ShowLogo (glow: true);
+        ShowVersion (false);
 	}
 
 	// -------- TRAINING VIEW ----- //

@@ -1,11 +1,7 @@
 ﻿using System.Collections;
 using System;
-using System.Collections.Generic;
 using UnityEngine;
-using AssemblyCSharp;
-using UnityEngine.Networking;
 using WebSocketSharp;
-
 
 class Demand {
 
@@ -14,38 +10,58 @@ class Demand {
 	public static string choice = "choice";
 	public static string trainingDone = "training_done";
 	public static string trainingChoice = "training_choice";
+    public static string ping = "ping";
 }
 
-[System.Serializable]
+[Serializable]
+class RequestPing {
+    
+    public string demand = "ping";
+    public string deviceId = "";
+}
+
+[Serializable]
+class ResponseShared {
+    public bool wait = false;
+    public string demand = "";
+    public int progress = -1;
+    public int t = -1;
+
+    public static ResponseShared CreateFromJson(string jsonString)
+    {
+        return JsonUtility.FromJson<ResponseShared>(jsonString);
+    }
+}
+
+
+[Serializable]
 class RequestInit {
 	public string demand = Demand.init;
 	public string deviceId = "";
 }
 
-[System.Serializable]
+[Serializable]
 class ResponseInit {
 
 	public int userId = -1;
 	public string pseudo = "";
 
-	public bool wait = false;
-	public int progress =  -1;
-
-	public string step = null;
+	public string step = "";
 
 	public int trainingT = -1;
 	public int trainingTMax = -1;
 	public int trainingGoodInHand = -1;
 	public int trainingGoodDesired = -1;
-	public bool trainingChoiceMade = false;
-	public int trainingScore = -1;
+    public int trainingScore = -1;
+    public bool trainingChoiceMade = false;
+
 	 
 	public int t = -1;
 	public int tMax = -1;
 	public int goodInHand = -1;
 	public int goodDesired = -1;
-	public bool choiceMade = false;
 	public int score = -1;
+    public bool choiceMade = false;
 
 	public int nGood = -1;
 
@@ -54,67 +70,42 @@ class ResponseInit {
 	}
 }
 
-[System.Serializable]
+[Serializable]
 class RequestSurvey {
 	public string demand = Demand.survey;
 	public int userId = -1;
 	public int age = -1;
 	public string sex = "";
 }
-	
-[System.Serializable]
-class ResponseSurvey {
 
-	public bool wait = false;
-	public int progress =  -1;
-
-	public static ResponseSurvey CreateFromJson(string jsonString) {
-		return JsonUtility.FromJson<ResponseSurvey> (jsonString);
-	}
-}
-
-[System.Serializable]
+[Serializable]
 class RequestTrainingDone {
+
 	public string demand = Demand.trainingDone;
 	public int userId = -1;
 }
 
-[System.Serializable]
-class ResponseTrainingDone {
-
-	public bool wait = false;
-	public int progress =  -1;
-
-	public static ResponseTrainingDone CreateFromJson(string jsonString) {
-		return JsonUtility.FromJson<ResponseTrainingDone> (jsonString);
-	}
-}
-
-[System.Serializable]
+[Serializable]
 class RequestTrainingChoice {
+    
 	public string demand = Demand.trainingChoice;
 	public int userId = -1;
 	public int t = -1;
 	public int good = -1;
 }
 
-[System.Serializable]
+[Serializable]
 class ResponseTrainingChoice {
-
-	public bool wait = false;
-	public int progress =  -1;
-
 	public bool trainingSuccess = false;
-	public int trainingT = -1;
+    public bool trainingEnd = false;
 	public int trainingScore = -1;
-	public bool trainingEnd = false;
 
 	public static ResponseTrainingChoice CreateFromJson(string jsonString) {
 		return JsonUtility.FromJson<ResponseTrainingChoice> (jsonString);
 	}
 }
 
-[System.Serializable]
+[Serializable]
 class RequestChoice {
 	public string demand = Demand.choice;
 	public int userId = -1;
@@ -122,16 +113,11 @@ class RequestChoice {
 	public int good = -1;
 }
 
-[System.Serializable]
+[Serializable]
 class ResponseChoice {
-
-	public bool wait = false;
-	public int progress = -1;
-
 	public bool success = false;
-	public int t = -1;
-	public int score = -1;
 	public bool end = false;
+    public int score = -1;
 
 	public static ResponseChoice CreateFromJson(string jsonString) {
 		return JsonUtility.FromJson<ResponseChoice> (jsonString);
@@ -140,135 +126,250 @@ class ResponseChoice {
 
 public class Client : MonoBehaviour {
 
-	// ---------- For communication with the server -------------------------- //
+	public string url = "<url>";
+    public int reconnectTime = 1000;
+    public int timeOut = 30000;
+    public int delayRequest = 2000;
+    public int delayRequestNoResponse = 10000;
+    //  public int delayPing = 1000;
 
-	public string url = "http://127.0.0.1:8000/";
+    // ----------------------------------------------------------- //
 
 	string deviceId;
 
 	GameController gameController;
 
-	WWWForm form;
-	WWWForm formInMemory;
-
 	string demand;
 
-	// ------------------------------------------------------------ //
+    // ------------------------------------------------------------ //
 
 	int userId = -1;
 	string pseudo = "";
 
-	bool wait = false;
+	bool wait;
 	int progress =  -1;
 
-	string step = null;
+	string step;
 
 	int trainingT = -1;
 	int trainingTMax = -1;
 	int trainingGoodInHand = -1;
 	int trainingGoodDesired = -1;
 	int trainingScore = -1;
-	bool trainingChoiceMade = false;
-	bool trainingSuccess = false;
-	bool trainingEnd = false;
+	bool trainingChoiceMade;
+	bool trainingSuccess;
+	bool trainingEnd;
 
 	int t = -1;
 	int tMax = -1;
 	int score = -1;
 	int goodInHand = -1;
 	int goodDesired = -1;
-	bool choiceMade = false;
-	bool success = false;
-	bool end = false;
+	bool choiceMade;
+	bool success;
+	bool end;
 
 	int nGood = -1;
 
+    // -------------------------------------------------------------- //
+
 	WebSocket w;
+
 	string error;
-	bool connected;
+    string currentJSONRequest = "";
 
-	bool occupied;
+    bool connected;
+    bool justDisconnect;
+    bool justConnect;
+    bool receivedResponse;
+    bool receivedPing;
+    bool readyToSend = true;
 
-	List <string> responses;
+    bool responseTreated;
 
-	// --------------- Overloaded Unity's functions -------------------------- //
+    float timeLastReconnection = 0;
 
-	void Awake () {
+    // ------------------------------------------------------ //
 
-		deviceId = UnityEngine.SystemInfo.deviceUniqueIdentifier;
-		gameController = GetComponent<GameController> ();
+	void Start () 
+    {
+        deviceId = SystemInfo.deviceUniqueIdentifier;
+        gameController = GetComponent<GameController>();
+
+        StartCoroutine (StartWebSocket ());
 	}
 
-	// Use this for initialization
+	IEnumerator StartWebSocket () 
+    {
+        Debug.Log("[Client] Connecting...");
 
-	void Start () {
-		
-		gameController = GetComponent<GameController> ();
-		StartCoroutine(StartWebSocket ());
-		responses = new List<string> ();
+        error = null;
+
+        float timeConnection = Time.time;
+
+        w = new WebSocket(url)
+        {
+            WaitTime = TimeSpan.FromSeconds (timeOut / 1000.0f)
+        };
+        w.OnMessage += (sender, e) => OnMessage(e);
+        w.OnOpen += (sender, e) => OnOpen();
+        w.OnError += (sender, e) => OnError(e);
+        w.OnClose += (sender, e) => OnClose(e);
+        w.ConnectAsync();
+        while (!connected && error == null)
+        {
+            yield return 0;
+        }
 	}
 
-	IEnumerator StartWebSocket () {
+    void OnApplicationQuit ()
+    {
+        StartCoroutine (Disconnect());
+    }
 
-		Debug.Log ("[Client] Connecting...");
-		w = new WebSocket(url);
-		w.OnMessage += (sender, e) => OnMessage (e);
-		w.OnOpen += (sender, e) => OnOpen();
-		w.OnError += (sender, e) => OnError(e);
-		w.ConnectAsync();
-		while (!connected && error == null)
-			yield return 0;
+    void OnOpen () 
+    {
+        connected = true;
+        justConnect = true;
+		Debug.Log ("[Client] Connected!");
 	}
 
-	void OnOpen() {
-		connected = true;
-		Debug.Log ("Connected!");
-	}
-
-	void OnError (WebSocketSharp.ErrorEventArgs e) {
-
-		connected = false;
+	void OnError (ErrorEventArgs e) 
+    {
 		error = e.Message;
-		Debug.Log (String.Format("[Client] Using url '{0}', I got error '{1}'.", new object [] {url, error}));
+		Debug.Log (String.Format(
+            "[Client] Using url '{0}', I got error '{1}'.", 
+            new object [] {url, error}));
 	}
 
-	// Update is called once per frame
+    void OnClose (CloseEventArgs e) 
+    {
+        connected = false;
+        justDisconnect = true;
+        Debug.Log(String.Format(
+            "[Client] WebSocket has been closed with reason: '{0}' (code {1}).", 
+            new object[] {e.Reason, e.Code }));
+    }
+
+    void OnMessage (MessageEventArgs e)
+    {
+        string msg = e.Data;
+        Debug.Log("[Client] Received msg: " + msg);
+        if (msg == "pong")
+        {
+            Debug.Log("[Client] I received a pong");
+            receivedPing = true;
+        }
+        else 
+        {
+            Debug.Log("[Client] I received a response");
+            HandleResponse (msg);
+            receivedResponse = true;
+        }
+    }
+
+    IEnumerator Disconnect () 
+    {
+        if (w == null)
+        {
+            Debug.Log("[Client] No websocket to disconnect.");
+            yield return 1;
+        }
+        else
+        {
+            Debug.Log("[Client] Disconnect.");
+            w.CloseAsync();
+            while (connected)
+            {
+                yield return 0;
+            }
+        }
+    }
+
+    IEnumerator ReConnect ()
+    {
+        yield return new WaitWhile(
+            () => Time.time - timeLastReconnection < reconnectTime / 1000.0f
+        );
+
+        if (!connected)
+        {
+            timeLastReconnection = Time.time;
+            StartCoroutine (StartWebSocket ());
+        }
+    }
+
+    IEnumerator SendRequest () 
+    {
+        bool sending = false;
+        try
+        {
+            if (!connected || w == null)
+            {
+                Debug.Log("[Client] I'm not connected so I couldn't send a message.");
+            }
+            else
+            {
+                if (currentJSONRequest == "")
+                {
+                    Debug.Log("[Client] I send a ping");
+                    RequestPing req = new RequestPing
+                    {
+                        deviceId = deviceId
+                    };
+                    w.Send(JsonUtility.ToJson(req));
+                }
+                else
+                {
+                    Debug.Log("[Client] I send a json request");
+                    w.Send(currentJSONRequest);
+                }
+                sending = true;
+            }
+        } 
+        catch (Exception)
+        {
+            Debug.Log("[Client ] I got an exception during sending.");
+        }
+        if (sending) {
+            float sendingTime = Time.time; 
+            receivedPing = false;
+            receivedResponse = false;
+            yield return new WaitUntil(
+                () => Time.time - sendingTime > delayRequestNoResponse / 1000.0f
+                || receivedResponse || receivedPing);
+        } 
+        yield return new WaitForSeconds(delayRequest / 1000.0f);
+        readyToSend = true;
+    }
+
 	void Update () {
 
-		if (!occupied) {
-			occupied = true;
-			if (error != null) {
-				error = null;
-				StartCoroutine (ReConnect ());
-			} else if (responses.Count > 0) {
-				HandleServerResponse (responses [0]);
-				responses.RemoveAt (0);
-			}
-			occupied = false;
-		} 
-	}
+        if (justConnect)
+        {
+            justConnect = false;
+            gameController.OnConnection();
+        }
+        else if (justDisconnect)
+        {
+            justDisconnect = false;
+            Debug.Log("[Client] I've been disconnected!");
 
-	public IEnumerator ReConnect() {
-		yield return new WaitForSeconds (1);
-		StartCoroutine (StartWebSocket ());
-	}
-
-	public IEnumerator Send (string msg) {
-
-		while (!connected) {
-			Debug.Log ("[Client] Not connected... I will try to send in a short while.");
-			yield return new WaitForSeconds (1);
-		}
-		Debug.Log("[Client] Sending msg: " + msg);
-		w.Send(msg);
-	}
-		
-	void OnMessage (WebSocketSharp.MessageEventArgs e) {
-
-		string msg = e.Data;
-		Debug.Log ("[Client] Received msg: " + msg);
-		responses.Add (msg);
-		//gameController.OnServerResponse (msg);
+            // Try to reconnect
+            Debug.Log("[Client] I will try to reconnect...");
+            StartCoroutine (ReConnect ());
+            gameController.OnDisconnection();
+        }
+        else if (responseTreated) 
+        {
+            responseTreated = false;
+            gameController.ServerReplied ();
+        } 
+        else if (readyToSend) 
+        {
+            readyToSend = false;
+            StartCoroutine (SendRequest());
+        }
 	}
 		
 	// ------------------------------------------------------------------------------------- //
@@ -277,97 +378,116 @@ public class Client : MonoBehaviour {
 
 		demand = Demand.init;
 
-		RequestInit req = new RequestInit ();
-		req.deviceId = deviceId;
+        RequestInit req = new RequestInit {
+            deviceId = deviceId
+        };
 
-		Debug.Log(String.Format(
-			"[RequestInit] deviceId: {0}",
+        Debug.Log(String.Format(
+            "[Client] [RequestInit] deviceId: {0}",
 			new object [] {req.deviceId}
 		));
 
-		string json = JsonUtility.ToJson (req);
-		StartCoroutine (Send (json));
+		currentJSONRequest = JsonUtility.ToJson (req);
 	}
 
 	public void Survey (int age, string sex) {
 
 		demand = Demand.survey;
-		RequestSurvey req = new RequestSurvey ();
-		req.userId = userId;
-		req.age = age;
-		req.sex = sex;
+        RequestSurvey req = new RequestSurvey {
+            userId = userId,
+            age = age,
+            sex = sex
+        };
 
-		Debug.Log(String.Format(
-			"[RequestSurvey] userId: {0}, age: {1}, sex: {2}",
+        Debug.Log(String.Format (
+            "[Client] [RequestSurvey] userId: {0}, age: {1}, sex: {2}",
 			new object [] {req.userId, req.age, req.sex}
 		));
 
-		string json = JsonUtility.ToJson (req);
-		StartCoroutine (Send (json));
+		currentJSONRequest = JsonUtility.ToJson (req);
 	}
 
 	public void TrainingDone () {
 
 		demand = Demand.trainingDone;
 
-		RequestTrainingDone req = new RequestTrainingDone ();
-		req.userId = userId;
+        RequestTrainingDone req = new RequestTrainingDone
+        {
+            userId = userId
+        };
 
-		Debug.Log(String.Format(
-			"[RequestTrainingDone] userId: {0}",
+        Debug.Log(String.Format(
+            "[Client] [RequestTrainingDone] userId: {0}",
 			new object [] {req.userId}
 		));
 
-		string json = JsonUtility.ToJson (req);
-		StartCoroutine (Send (json));
+		currentJSONRequest = JsonUtility.ToJson (req);
 	} 
 
 	public void Choice (int value) {
 
 		demand = Demand.choice;
 
-		RequestChoice req = new RequestChoice ();
-		req.userId = userId;
-		req.good = value;
-		req.t = t;
+        RequestChoice req = new RequestChoice
+        {
+            userId = userId,
+            good = value,
+            t = t
+        };
 
-		Debug.Log(String.Format(
-			"[RequestChoice] userId: {0}, good: {1}, t: {2}",
+        Debug.Log(String.Format(
+            "[Client] [RequestChoice] userId: {0}, good: {1}, t: {2}",
 			new object [] {req.userId, req.good, req.t}
 		));
 
-		string json = JsonUtility.ToJson (req);
-		StartCoroutine (Send (json));
+		currentJSONRequest = JsonUtility.ToJson (req);
 	}
 
 	public void TrainingChoice (int value) {
 
 		demand = Demand.trainingChoice;
 
-		RequestTrainingChoice req = new RequestTrainingChoice ();
-		req.userId = userId;
-		req.good = value;
-		req.t = trainingT;
+        RequestTrainingChoice req = new RequestTrainingChoice
+        {
+            userId = userId,
+            good = value,
+            t = trainingT
+        };
 
-		Debug.Log(String.Format(
-			"[RequestTrainingChoice] userId: {0}, good: {1}, t: {2}",
+        Debug.Log(String.Format(
+            "[Client] [RequestTrainingChoice] userId: {0}, good: {1}, t: {2}",
 			new object [] {req.userId, req.good, req.t}
 		));
 
-		string json = JsonUtility.ToJson (req);
-		StartCoroutine (Send (json));
+		currentJSONRequest = JsonUtility.ToJson (req);
 	}
 
 	// ------------------ General methods for communicating with the server --------- //
 
-	void HandleServerResponse (string response) {
+	void HandleResponse (string response) {
 
-		if (demand == Demand.init) {
+        ResponseShared rs = ResponseShared.CreateFromJson(response);
+
+        if ((rs.demand != demand) ||
+            ((rs.demand == Demand.choice && t != rs.t) ||
+            (rs.demand == Demand.trainingChoice && trainingT != rs.t))
+           ) {
+
+            Debug.LogWarning(String.Format("[Client] Not expected server response (content='{0}', expected response = ').", response));
+            return; 
+        }
+
+        wait = rs.wait;
+        progress = rs.progress;
+
+        Debug.Log(String.Format(
+            "[Client] Received response for demand: '{0}' with wait: {1}, " +
+            "progress: {2}.", new object[] {rs.demand, wait, progress }
+            ));
+
+        if (demand == Demand.init) {
 
 			ResponseInit ri = ResponseInit.CreateFromJson (response);
-
-			wait = ri.wait;
-			progress = ri.progress;
 
 			userId = ri.userId;
 			pseudo = ri.pseudo;
@@ -391,7 +511,7 @@ public class Client : MonoBehaviour {
 			nGood = ri.nGood;
 
 			Debug.Log (String.Format(
-				"[ResponseInit] wait: {0}, progress: {1}, userId: {2}, pseudo: {3}, step: {4}, \n" +
+                "[Client] [ResponseInit] wait: {0}, progress: {1}, userId: {2}, pseudo: {3}, step: {4}, \n" +
 				"trainingT: {5}, trainingTMax: {6}, trainingGoodInHand: {7}, trainingGoodDesired: {8}, trainingChoiceMade: {9}, trainingScore: {10}, \n" +
 				"t: {11}, tMax: {12}, goodInHand: {13}, goodDesired: {14}, choiceMade: {15}, score: {16}, nGood: {17}.", 
 				new object [] {wait, progress, userId, pseudo, step, trainingT, trainingTMax, trainingGoodInHand, trainingGoodDesired, trainingChoiceMade, trainingScore,
@@ -400,86 +520,52 @@ public class Client : MonoBehaviour {
 		
 		} else if (demand == Demand.survey) {
 
-			ResponseSurvey rs = ResponseSurvey.CreateFromJson (response);
-			wait = rs.wait;
+            wait = rs.wait;
 			progress = rs.progress;
 
 			Debug.Log(String.Format(
 				"[ResponseSurvey] wait: {0}, progress: {1}", new object [] {wait, progress}	
 			));
 		
-		} else if (demand == Demand.choice) { 
+        } else if (demand == Demand.choice && !wait) { 
 
 			ResponseChoice rc = ResponseChoice.CreateFromJson (response);
-
-			if (t != rc.t) {
-				Debug.LogWarning(String.Format("Got a server response for different t (content='{0}').", response));
-				return;
-			}
 				
-			wait = rc.wait;
-			progress = rc.progress;
+			success = rc.success;
+			score = rc.score;
+			end = rc.end;
 
-			if (!wait) {
-				
-				success = rc.success;
-				score = rc.score;
-				end = rc.end;
-
-				t = rc.t += 1;
-			}
+            t += 1;
 
 			Debug.Log (String.Format (
-				"[ResponseChoice] wait: {0}, progress: {1}, success: {2}, t: {3}, score: {4}, end: {5}.", 
+                "[Client] [ResponseChoice] wait: {0}, progress: {1}, success: {2}, t: {3}, score: {4}, end: {5}.", 
 				new object [] { wait, progress, success, t, score, end }	
 			));
 
-		} else if (demand == Demand.trainingChoice) { 
+        } else if (demand == Demand.trainingChoice && !wait) { 
 			
 			ResponseTrainingChoice rtc = ResponseTrainingChoice.CreateFromJson (response);
-
-			if (rtc.trainingT != trainingT) {
-				Debug.LogWarning(String.Format("Got a server response for different t (content='{0}').", response));
-				return;
-			}
-
-			wait = rtc.wait;
-			progress = rtc.progress;
-
-			if (!wait) {
 				
-				trainingSuccess = rtc.trainingSuccess;
-				trainingScore = rtc.trainingScore;
-				trainingEnd = rtc.trainingEnd;
+			trainingSuccess = rtc.trainingSuccess;
+			trainingScore = rtc.trainingScore;
+			trainingEnd = rtc.trainingEnd;
 
-				trainingT = rtc.trainingT + 1;
-			}
+            trainingT += 1;
 
 			Debug.Log (String.Format (
-				"[ResponseTrainingChoice] wait: {0}, progress: {1}, trainingSuccess: {2}, trainingT: {3}, trainingScore: {4}, trainingEnd: {5}.", 
+                "[Client] [ResponseTrainingChoice] wait: {0}, progress: {1}, trainingSuccess: {2}, trainingT: {3}, trainingScore: {4}, trainingEnd: {5}.", 
 				new object [] { wait, progress, trainingSuccess, trainingT, trainingScore, trainingEnd }	
 			));
 
-		} else if (demand == Demand.trainingDone) {
-			
-			ResponseTrainingDone rtd = ResponseTrainingDone.CreateFromJson (response);
-			wait = rtd.wait;
-			progress = rtd.progress;
-
-			Debug.Log (String.Format (
-				"[ResponseTrainingDone] wait: {0}, progress: {1}.", new object [] { wait, progress }	
-			));
-		
-		} else {
-			Debug.LogWarning(String.Format("Not expected server response (content='{0}').", response));
-			return;
 		}
 
-		if (!wait) {
-			demand = null;
-		} 
-			
-		gameController.ServerReplied ();
+        if (!wait)
+        {
+            demand = null;
+            currentJSONRequest = "";
+        }
+
+        responseTreated = true;
 	}
 
 	// ----- 'classic' getters -------- //
@@ -525,4 +611,10 @@ public class Client : MonoBehaviour {
 	public int GetTrainingTMax () {return trainingTMax;}
 
 	public int GetNGoods () {return nGood;}
+
+
+    //static string GetTimestamp()
+    //{
+    //    return System.DateTime.UtcNow.ToString("HH:mm:ss.fff: ");
+    //}
 }

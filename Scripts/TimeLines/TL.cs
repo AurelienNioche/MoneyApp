@@ -1,9 +1,8 @@
-﻿using System;
-
-/* 
+﻿/* 
 WU: Wait for user action
 WS: Wait for server reply
 */
+
 
 namespace AssemblyCSharp
 {
